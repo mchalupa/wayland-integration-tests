@@ -259,7 +259,7 @@ handle_child_abort(int signum)
 }
 
 void
-wit_display_client_create(struct wit_display *disp,
+wit_display_create_client(struct wit_display *disp,
 			  int (*client_main)(int))
 {
 	int sockv[2];

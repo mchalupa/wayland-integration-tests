@@ -61,7 +61,7 @@ void
 wit_display_destroy(struct wit_display *);
 
 void
-wit_display_create_client(struct wit_display *c,
+wit_display_create_client(struct wit_display *disp,
 			  int (*client_main)(int));
 void
 wit_display_add_user_data(struct wit_display *c, void *data,
