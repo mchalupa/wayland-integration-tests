@@ -12,4 +12,7 @@ enum optype {
 	RUN_FUNC		/* run user's func */
 };
 
+#include <wayland-client-protocol.h>
+const struct wl_registry_listener registry_default_listener;
+
 #endif  /* __WIT_UTIL_H__ */
