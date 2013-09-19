@@ -1,0 +1,114 @@
+/*
+ * Copyright © 2013 Marek Chalupa
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that copyright
+ * notice and this permission notice appear in supporting documentation, and
+ * that the name of the copyright holders not be used in advertising or
+ * publicity pertaining to distribution of the software without specific,
+ * written prior permission.  The copyright holders make no representations
+ * about the suitability of this software for any purpose.  It is provided "as
+ * is" without express or implied warranty.
+ *
+ * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ */
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#include <wayland-client.h>
+
+#include "wit-global.h"
+#include "wit-assert.h"
+#include "client.h"
+
+
+/*
+ * Allow confortably add listener into client structure
+ */
+void
+wit_client_add_listener(struct wit_client *cl, const char *interface,
+			void *listener)
+{
+	assertf(cl, "Wrong pointer passed");
+
+	if (strcmp(interface, "wl_pointer") == 0) {
+		cl->listener.pointer = (struct wl_pointer_listener *) listener;
+
+		if (cl->pointer)
+			wl_pointer_add_listener(cl->pointer,
+						cl->listener.pointer, cl);
+	} else if (strcmp(interface, "wl_keyboard") == 0) {
+		cl->listener.keyboard = (struct wl_keyboard_listener *) listener;
+
+		if (cl->keyboard)
+			wl_keyboard_add_listener(cl->keyboard,
+						 cl->listener.keyboard, cl);
+	} else if (strcmp(interface, "wl_touch") == 0) {
+		cl->listener.touch = (struct wl_touch_listener *) listener;
+
+		if (cl->touch)
+			wl_touch_add_listener(cl->touch, cl->listener.touch, cl);
+	} else {
+		assertf(0, "Unknown type of interface");
+	}
+}
+
+struct wit_client *
+wit_client_populate(int sock)
+{
+	struct wit_client *c = calloc(1, sizeof *c);
+	assert(c && "Out of memory");
+
+	c->sock = sock;
+
+	c->display = wl_display_connect(NULL);
+	assertf(c->display, "Couldn't connect to display");
+
+	c->registry = wl_display_get_registry(c->display);
+	assertf(c->registry, "Couldn't get registry");
+
+	wl_registry_add_listener(c->registry, &registry_default_listener, c);
+	wl_display_dispatch(c->display);
+
+	assertf(wl_display_get_error(c->display) == 0,
+		"An error in display occured");
+
+	return c;
+}
+
+void
+wit_client_free(struct wit_client *c)
+{
+	assertf(c, "Wrong pointer");
+	assertf(wl_display_get_error(c->display) == 0,
+		"An error in display occured");
+
+
+	wl_registry_destroy(c->registry);
+
+	if(c->seat)
+		wl_seat_destroy(c->seat);
+	if(c->pointer)
+		wl_pointer_destroy(c->pointer);
+	if(c->keyboard)
+		wl_keyboard_destroy(c->keyboard);
+	if(c->touch)
+		wl_touch_destroy(c->touch);
+
+	wl_display_disconnect(c->display);
+
+	close(c->sock);
+
+	free(c);
+}
