@@ -1,6 +1,11 @@
 #ifndef __WIT_ASSERT_H__
 #define __WIT_ASSERT_H__
 
+#include <assert.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+
 /* Assert with formated output */
 #define assertf(cond, ...) 							\
 	do {									\
