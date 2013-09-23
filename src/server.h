@@ -13,6 +13,7 @@
 			__i_g < ((sizeof (ptr)) / (sizeof (struct wl_global *)));	\
 			(__cur_g)++, __i_g++, l = *(__cur_g))
 
+
 /* ===
  *  Compositor
    === */

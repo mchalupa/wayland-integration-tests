@@ -33,10 +33,11 @@
 
 #include <wayland-server.h>
 
-#include "wit-assert.h"
 #include "wit-global.h"
+#include "wit-assert.h"
 #include "server.h"
-#include "configuration.h"
+
+static void display_create_globals(struct wit_display *d);
 
 /*
  * Terminate display when client exited
@@ -92,7 +93,6 @@ handle_sigusr1(int signum, void *data)
 	return 0;
 }
 
-
 /* Send messages to client */
 static void
 send_client(struct wit_display *disp, enum optype op, ...)
@@ -125,7 +125,6 @@ send_client(struct wit_display *disp, enum optype op, ...)
 
 	va_end(vl);
 }
-
 
 /* Since tests can run parallely, we need unique socket names
  * for each test. Otherwise test can fail on wl_display_add_socket.
@@ -185,6 +184,9 @@ wit_display_create(struct wit_config *conf)
 						handle_sigusr1, d);
 	assertf(d->sigusr1,
 		"Couldn't add SIGUSR1 signal handler to loop");
+
+	/* create globals */
+	display_create_globals(d);
 
 	stat = socketpair(AF_UNIX, SOCK_STREAM, 0, d->client_sock);
 	assertf(stat == 0,
@@ -334,4 +336,27 @@ wit_display_add_user_func(struct wit_display *disp,
 {
 	disp->user_func = func;
 	disp->user_func_data = data;
+}
+
+/*
+ * Wayland bindings
+ */
+
+ /* definitions can be found in wit-server-protocol.c */
+extern const struct wl_seat_interface seat_default_implementation;
+void seat_bind(struct wl_client *, void *, uint32_t, uint32_t);
+
+static void
+display_create_globals(struct wit_display *d)
+{
+	if (d->config.globals == 0)
+		return;
+
+	if (d->config.globals & CONF_SEAT) {
+		d->globals.seat =
+			wl_global_create(d->display, &wl_seat_interface,
+					 wl_seat_interface.version,
+					 d, seat_bind);
+		assertf(d->globals.seat, "Failed creating global for seat");
+	}
 }
