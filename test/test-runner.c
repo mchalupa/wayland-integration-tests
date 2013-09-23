@@ -243,7 +243,6 @@ int main(int argc, char *argv[])
 
 	/* print backtrace upon SIGSEGV */
 	signal(SIGSEGV, print_backtrace);
-	signal(SIGABRT, print_backtrace);
 
 	/* Load system malloc, free, and realloc */
 	sys_calloc = dlsym(RTLD_NEXT, "calloc");
