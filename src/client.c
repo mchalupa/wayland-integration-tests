@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <wayland-client.h>
 
@@ -34,7 +35,7 @@
 
 
 /*
- * Allow confortably add listener into client structure
+ * Allow comfortably add listener into client structure
  */
 void
 wit_client_add_listener(struct wit_client *cl, const char *interface,
@@ -111,4 +112,21 @@ wit_client_free(struct wit_client *c)
 	close(c->sock);
 
 	free(c);
+}
+
+void
+wit_client_call_user_func(struct wit_client *cl)
+{
+	int stat;
+
+	assertf(cl, "No client's structure passed");
+
+	stat = kill(getppid(), SIGUSR1);
+	assertf(stat == 0,
+		"Failed sending signal to display");
+
+	enum optype op = RUN_FUNC;
+	stat = write(cl->sock, &op, sizeof(op));
+	assertf(stat == sizeof(op), "Sent %d instead of %lu bytes (sendig optype)",
+		stat, sizeof(op));
 }

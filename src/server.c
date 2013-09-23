@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <wait.h>
-//#include <sys/wait.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -37,6 +36,7 @@
 #include "wit-assert.h"
 #include "wit-global.h"
 #include "server.h"
+#include "configuration.h"
 
 /*
  * Terminate display when client exited
@@ -146,7 +146,7 @@ get_socket_name(void)
 }
 
 struct wit_display *
-wit_display_create(void)
+wit_display_create(struct wit_config *conf)
 {
 	struct wit_display *d = NULL;
 	const char *socket_name;
@@ -154,6 +154,11 @@ wit_display_create(void)
 
 	d = calloc(1, sizeof *d);
 	assert(d && "Out of memory");
+
+	if (conf)
+		d->config = *conf;
+	else
+		d->config = wit_default_config;
 
 	d->display = wl_display_create();
 	assertf(d->display, "Creating display failed [display: %p]", d->display);

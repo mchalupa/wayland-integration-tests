@@ -27,7 +27,7 @@
 
 TEST(compositor_create)
 {
-	struct wit_display *c = wit_display_create();
+	struct wit_display *c = wit_display_create(NULL);
 
 	/* Following tests should be covered by asserts in code, but what if I
 	 * forget or will change something? */
@@ -44,6 +44,13 @@ TEST(compositor_create)
 	assertf(c->data == NULL, "Client non-NULL before setting");
 	assertf(c->user_func == NULL, "User func is NULL before setting");
 
+	/* check for default configs */
+	assert(c->config.globals == CONF_SEAT);
+	assert(c->config.resources == CONF_ALL);
+	assert(c->config.options == ~CONF_ALL);
+	/* ~CONF_ALL == 0 */
+	assert(~CONF_ALL == 0); /* sanity test */
+
 	wit_display_destroy(c);
 	exit(EXIT_SUCCESS);
 }
@@ -58,7 +65,7 @@ client_main(int s)
 
 TEST(client_create)
 {
-	struct wit_display *c = wit_display_create();
+	struct wit_display *c = wit_display_create(NULL);
 	int stat;
 
 	wit_display_create_client(c, client_main);
@@ -76,7 +83,7 @@ TEST(client_create)
 
 TEST(user_data_without_destr)
 {
-	struct wit_display *d = wit_display_create();
+	struct wit_display *d = wit_display_create(NULL);
 	/* program shouldn't crash with NULL destructor */
 	wit_display_add_user_data(d, (void *) 0xbee, NULL);
 	assertf(wit_display_get_user_data(d) == (void *) 0xbee,
@@ -94,10 +101,9 @@ destroy_bee(void *data)
 		"Passed wrong data in data's destructor");
 }
 
-
 TEST(user_data_with_destr)
 {
-	struct wit_display *d = wit_display_create();
+	struct wit_display *d = wit_display_create(NULL);
 	wit_display_add_user_data(d, (void *) 0xbee, destroy_bee);
 	wit_display_destroy(d);
 

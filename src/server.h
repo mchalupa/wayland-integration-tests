@@ -3,6 +3,8 @@
 
 #include <unistd.h>
 
+#include "configuration.h"
+
 
 /* Following macro goes through anonymous structures globals of structure wit_display */
 #define for_each_global(ptr, l)								\
@@ -46,13 +48,15 @@ struct wit_display {
 	/* user defined func */
 	void (*user_func)(void *);
 	void *user_func_data;
+
+	struct wit_config config;
 };
 
 int
 wit_compositor(int (*client_main)(int));
 
 struct wit_display *
-wit_display_create(void);
+wit_display_create(struct wit_config *);
 
 int
 wit_display_run(struct wit_display *);
