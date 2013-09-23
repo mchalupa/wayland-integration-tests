@@ -58,8 +58,7 @@ TEST(compositor_create)
 static int
 client_main(int s)
 {
-	//struct wit_client *c = wit_client_populate(s);
-
+	assert(s >= 0);
 	return 42;
 }
 
@@ -110,4 +109,54 @@ TEST(user_data_with_destr)
 	assertf(destroy_bee_called, "Destructor wasn't called");
 }
 
+static _Bool user_func_called = 0;
+static void
+user_func(void *data)
+{
+	user_func_called = 1;
+	assertf(data = (void *) 0xdeadbee,
+		"data should be 0xdeadbee but is %p", data);
+}
 
+static int
+user_func_main(int sock)
+{
+	struct wit_client c;
+	c.sock = sock;
+
+	wit_client_call_user_func(&c);
+
+	return EXIT_SUCCESS;
+}
+
+TEST(user_func_tst)
+{
+	struct wit_display *d = wit_display_create(NULL);
+	int stat;
+
+	wit_display_create_client(d, user_func_main);
+	wit_display_add_user_func(d, user_func, (void *) 0xdeadbee);
+
+	stat = wit_display_run(d);
+	assertf(user_func_called, "User function wasn't called");
+
+	wit_display_destroy(d);
+	exit(stat);
+
+}
+
+TEST(config_tst)
+{
+	struct wit_config conf = {
+		.globals = CONF_SEAT,
+		.resources = CONF_ALL
+	};
+
+	struct wit_display *d = wit_display_create(&conf);
+
+	assert(d->config.globals == CONF_SEAT);
+	assert(d->config.resources == CONF_ALL);
+	assert(d->config.options == ~CONF_ALL);
+
+	wit_display_destroy(d);
+}
