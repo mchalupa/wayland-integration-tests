@@ -197,6 +197,7 @@ wit_display_destroy(struct wit_display *d)
 	if (d->data && d->data_destroy_func)
 		d->data_destroy_func(d->data);
 
+	close(d->client_sock[0]);
 	close(d->client_sock[1]);
 
 	wl_event_source_remove(d->sigchld);
