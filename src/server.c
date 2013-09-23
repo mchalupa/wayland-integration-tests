@@ -197,11 +197,6 @@ wit_display_destroy(struct wit_display *d)
 	if (d->data && d->data_destroy_func)
 		d->data_destroy_func(d->data);
 
-	for_each_global(d->globals, gl) {
-		if(gl)
-			wl_global_destroy(gl);
-	}
-
 	close(d->client_sock[1]);
 
 	wl_event_source_remove(d->sigchld);
