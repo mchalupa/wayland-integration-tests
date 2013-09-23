@@ -75,7 +75,7 @@ print_open_fds(void)
 		if (ent->d_type == DT_LNK) {
 			snprintf(linkpath, sizeof(linkpath), "/proc/self/fd/%s",
 				 ent->d_name);
-			stat = readlink(linkpath, &buf, 100);
+			stat = readlink(linkpath, buf, 100);
 			/* terminate string */
 			if (stat != -1)
 				buf[stat] = 0;
