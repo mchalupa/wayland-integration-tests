@@ -23,4 +23,18 @@ struct wit_client {
 	} listener;
 };
 
+/*
+void
+wit_client_add_listener(struct wit_client *cl, const char *interface,
+			void *listener);
+
+struct wit_client *
+wit_client_populate(int sock);
+
+void
+wit_client_free(struct wit_client *c);
+*/
+
+void
+wit_client_call_user_func(struct wit_client *cl);
 #endif /* __WIT_CLIENT_H__ */
