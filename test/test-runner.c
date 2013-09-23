@@ -151,7 +151,7 @@ run_test(const struct test *t)
 #ifdef HAVE_LIBUNWIND
 
 static void
-print_backtrace(void)
+print_backtrace(int signum)
 {
 	unw_cursor_t cursor;
 	unw_context_t context;
@@ -162,7 +162,7 @@ print_backtrace(void)
 	const char *filename;
 	Dl_info dlinfo;
 
-	dbg("Backtrace:\n");
+	dbg("Backtrace for signal %d:\n", signum);
 
 	pip.unwind_info = NULL;
 	ret = unw_getcontext(&context);
@@ -213,12 +213,13 @@ print_backtrace(void)
 #else
 
 static void
-print_backtrace(void)
+print_backtrace(int signum)
 {
 	void *buffer[32];
 	int i, count;
 	Dl_info info;
-	dbg("Backtrace:\n");
+
+	dbg("Backtrace for signal %d:\n", signum);
 
 	count = backtrace(buffer, 32);
 	for (i = 0; i < count; i++) {
