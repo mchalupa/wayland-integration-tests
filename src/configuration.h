@@ -41,10 +41,4 @@ enum {
 	CONF_ALL 	= ~((uint32_t) 0)
 };
 
-const struct wit_config wit_default_config = {
-	CONF_SEAT,
-	CONF_ALL,
-	0
-};
-
 #endif /* __WIT_CONFIGURATION_H__ */

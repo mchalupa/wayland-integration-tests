@@ -37,6 +37,12 @@
 #include "wit-assert.h"
 #include "server.h"
 
+const struct wit_config wit_default_config = {
+	CONF_SEAT,
+	CONF_ALL,
+	0
+};
+
 static void display_create_globals(struct wit_display *d);
 
 /*
