@@ -31,7 +31,18 @@
 #include <assert.h>
 #include <dlfcn.h>
 #include <errno.h>
+
+#include "config.h"
+
+/* support for printing backtrace upon SIGSEGV */
+#include <signal.h>
+#ifdef HAVE_LIBUNWIND
+#define UNW_LOCAL_ONLY
+#include <libunwind.h>
+#endif
+
 #include "test-runner.h"
+#include "wit-assert.h"
 
 static int num_alloc;
 static void* (*sys_malloc)(size_t);
@@ -135,26 +146,92 @@ run_test(const struct test *t)
 	exit(EXIT_SUCCESS);
 }
 
-static void
-print_backtrace(int sig)
-{
-	fprintf(stderr, "Got signal %d\n", sig);
+/* Print backtrace.
+ * Taken from weston */
+#ifdef HAVE_LIBUNWIND
 
+static void
+print_backtrace(void)
+{
+	unw_cursor_t cursor;
+	unw_context_t context;
+	unw_word_t off;
+	unw_proc_info_t pip;
+	int ret, i = 0;
+	char procname[256];
+	const char *filename;
+	Dl_info dlinfo;
+
+	dbg("Backtrace:\n");
+
+	pip.unwind_info = NULL;
+	ret = unw_getcontext(&context);
+	if (ret) {
+		dbg("unw_getcontext: %d\n", ret);
+		return;
+	}
+
+	ret = unw_init_local(&cursor, &context);
+	if (ret) {
+		dbg("unw_init_local: %d\n", ret);
+		return;
+	}
+
+	ret = unw_step(&cursor);
+	while (ret > 0) {
+		ret = unw_get_proc_info(&cursor, &pip);
+		if (ret) {
+			dbg("unw_get_proc_info: %d\n", ret);
+			break;
+		}
+
+		ret = unw_get_proc_name(&cursor, procname, 256, &off);
+		if (ret && ret != -UNW_ENOMEM) {
+			if (ret != -UNW_EUNSPEC)
+				dbg("unw_get_proc_name: %d\n", ret);
+			procname[0] = '?';
+			procname[1] = 0;
+		}
+
+		if (dladdr((void *)(pip.start_ip + off), &dlinfo) &&
+		    dlinfo.dli_fname &&
+		    *dlinfo.dli_fname)
+			filename = dlinfo.dli_fname;
+		else
+			filename = "?";
+
+		fprintf(stderr, "  %u: %s (%s%s+0x%x) [%p]\n", i++, filename, procname,
+		    ret == -UNW_ENOMEM ? "..." : "", (int)off,
+		    (void *)(pip.start_ip + off));
+
+		ret = unw_step(&cursor);
+		if (ret < 0)
+			dbg("unw_step: %d\n", ret);
+	}
+}
+
+#else
+
+static void
+print_backtrace(void)
+{
 	void *buffer[32];
 	int i, count;
 	Dl_info info;
+	dbg("Backtrace:\n");
 
 	count = backtrace(buffer, 32);
 	for (i = 0; i < count; i++) {
 		dladdr(buffer[i], &info);
-		fprintf(stderr, "  [%016lx]  %20s  (%s)\n",
-			(long) buffer[i],
-			info.dli_sname ? info.dli_sname : "--",
-			info.dli_fname);
+		fprintf(stderr, "  [%016lx]  %s  (%s)\n",
+		    (long) buffer[i],
+		    info.dli_sname ? info.dli_sname : "--",
+		    info.dli_fname);
 	}
-
-	_exit(SIGSEGV);
 }
+
+#endif
+
 
 int main(int argc, char *argv[])
 {
@@ -163,8 +240,9 @@ int main(int argc, char *argv[])
 	int total, pass;
 	siginfo_t info;
 
-	#include <signal.h>
+	/* print backtrace upon SIGSEGV */
 	signal(SIGSEGV, print_backtrace);
+	signal(SIGABRT, print_backtrace);
 
 	/* Load system malloc, free, and realloc */
 	sys_calloc = dlsym(RTLD_NEXT, "calloc");
