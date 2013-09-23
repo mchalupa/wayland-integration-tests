@@ -1,7 +1,7 @@
 AC_PREREQ([2.64])
 
-# TODO do it automatically from wayland versions
-# this should comply with wayland version
+# versioning of WIT should follow wayland -
+# e. g. WIT tests for wayland A.B.C should have version A.B.C or higer
 m4_define([wit_major_version], [1])
 m4_define([wit_minor_version], [2])
 m4_define([wit_micro_version], [90])
