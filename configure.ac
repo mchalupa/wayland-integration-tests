@@ -4,7 +4,7 @@ AC_PREREQ([2.64])
 # e. g. WIT tests for wayland A.B.C should have version A.B.C or higer
 m4_define([wit_major_version], [1])
 m4_define([wit_minor_version], [2])
-m4_define([wit_micro_version], [90])
+m4_define([wit_micro_version], [91])
 m4_define([wit_version],
           [wit_major_version.wit_minor_version.wit_micro_version])
 
@@ -44,7 +44,7 @@ if test "x$GCC" = "xyes"; then
 fi
 AC_SUBST(GCC_CFLAGS)
 
-#TODO add version and fail when it is not present
+# check wayland's presence
 PKG_CHECK_MODULES([WAYLAND_SERVER], [wayland-server],\
 			[HAVE_WAYLAND_SERVER=yes], [HAVE_WAYLAND_SERVER=no])
 PKG_CHECK_MODULES([WAYLAND_CLIENT], [wayland-client],\
@@ -57,6 +57,11 @@ fi
 if test "x$HAVE_WAYLAND_CLIENT" != "xyes"; then
 	AC_MSG_ERROR([Need wayland-client libraries to compile])
 fi
+
+# check wayland's version
+PKG_CHECK_MODULES([WAYLAND_VERSION], [wayland-server >= $WIT_VERSION],\
+			[],\
+			[AC_MSG_WARN([Wayland version is lower than $WIT_VERSION!])])
 
 PKG_CHECK_MODULES([LIBUNWIND], [libunwind],\
 			[HAVE_LIBUNWIND=yes], [HAVE_LIBUNWIND=no])
