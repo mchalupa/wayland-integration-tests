@@ -277,6 +277,10 @@ wit_display_create_client(struct wit_display *disp,
 		signal(SIGABRT, handle_child_abort);
 		stat = run_client(client_main, sockv[0],
 				  disp->client_sock[0]);
+
+		close(disp->client_sock[0]);
+		close(sockv[0]);
+
 		exit(stat);
 	} else {
 		close(sockv[0]);
