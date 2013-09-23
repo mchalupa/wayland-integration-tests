@@ -250,6 +250,9 @@ run_client(int (*client_main)(int), int wayland_sock, int client_sock)
 static inline void
 handle_child_abort(int signum)
 {
+	assertf(signum == SIGABRT,
+		"Got another signal than SIGABRT");
+
 	exit(SIGABRT);
 }
 
