@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <dirent.h>
+#include <sys/types.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -50,6 +51,42 @@ count_open_fds(void)
 	closedir(dir);
 
 	return count;
+}
+
+void
+print_open_fds(void)
+{
+	DIR *dir;
+	struct dirent *ent;
+
+	int stat = -1;
+	char linkpath[] = "/proc/self/fd/000";
+	char buf[100];
+
+	dir = opendir("/proc/self/fd");
+	assert(dir && "opening /proc/self/fd failed.");
+
+	errno = 0;
+	while ((ent = readdir(dir))) {
+		const char *s = ent->d_name;
+		if (s[0] == '.' && (s[1] == 0 || (s[1] == '.' && s[2] == 0)))
+			continue;
+
+		if (ent->d_type == DT_LNK) {
+			snprintf(linkpath, sizeof(linkpath), "/proc/self/fd/%s",
+				 ent->d_name);
+			stat = readlink(linkpath, &buf, 100);
+			/* terminate string */
+			if (stat != -1)
+				buf[stat] = 0;
+		}
+
+		fprintf(stderr, "  %-3s: %s\n", ent->d_name,
+			(stat == -1) ? "XXX" : buf);
+	}
+	assert(errno == 0 && "reading /proc/self/fd failed.");
+
+	closedir(dir);
 }
 
 void
