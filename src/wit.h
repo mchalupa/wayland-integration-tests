@@ -3,5 +3,6 @@
 
 #include "server.h"
 #include "client.h"
+#include "wit-assert.h"
 
 #endif /* __WIT_H__ */
