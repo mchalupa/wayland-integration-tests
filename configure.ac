@@ -36,18 +36,40 @@ LT_INIT
 
 PKG_PROG_PKG_CONFIG()
 
+TESTS_CFLAGS=
+TESTS_LIBS=
+
 if test "x$GCC" = "xyes"; then
 	GCC_CFLAGS="-Wall -Wextra -g"
 fi
 AC_SUBST(GCC_CFLAGS)
 
-#TODO add version
-PKG_CHECK_MODULES([WAYLAND_SERVER], [wayland-server])
-PKG_CHECK_MODULES([WAYLAND_CLIENT], [wayland-client])
+#TODO add version and fail when it is not present
+PKG_CHECK_MODULES([WAYLAND_SERVER], [wayland-server],\
+			[HAVE_WAYLAND_SERVER=yes], [HAVE_WAYLAND_SERVER=no])
+PKG_CHECK_MODULES([WAYLAND_CLIENT], [wayland-client],\
+			[HAVE_WAYLAND_CLIENT=yes], [HAVE_WAYLAND_CLIENT=no])
 
-AC_CHECK_HEADERS([wayland-server.h])
-AC_CHECK_HEADERS([wayland-client.h])
+if test "x$HAVE_WAYLAND_SERVER" != "xyes"; then
+	AC_MSG_ERROR([Need wayland-server libraries to compile])
+fi
 
+if test "x$HAVE_WAYLAND_CLIENT" != "xyes"; then
+	AC_MSG_ERROR([Need wayland-client libraries to compile])
+fi
+
+PKG_CHECK_MODULES([LIBUNWIND], [libunwind],\
+			[HAVE_LIBUNWIND=yes], [HAVE_LIBUNWIND=no])
+
+if test "x$HAVE_LIBUNWIND" = "xyes"; then
+	AC_DEFINE(HAVE_LIBUNWIND, [1], [Allow use libunwind to printing backtrace])
+	TESTS_CFLAGS=$LIBUNWIND_CFLAGS
+	TESTS_LIBS=$LIBUNWIND_LIBS
+fi
+
+#export options to makefiles
+AC_SUBST(TESTS_LIBS)
+AC_SUBST(TESTS_CFLAGS)
 
 AC_CONFIG_FILES([Makefile
 		 src/Makefile
