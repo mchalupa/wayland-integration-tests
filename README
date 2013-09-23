@@ -1,0 +1,57 @@
+==========================
+Wayland integration tests
+==========================
+
+This project aims to create small framework for simple testing
+of interaction between wayland's display and client.
+
+Directory structure:
+TOP \
+    src/    - framework sources
+    test/   - tests, including self-tests
+
+Part of this code was taken from wayland test-suite (namely test/test-runner.c,
+test/test-runner.h and test/test-helpers.c).
+
+
+=== Dependencies ===
+Required:
+ wayland-server
+ wayland-client
+
+Optional:
+ libunwind
+
+
+=== Building WIT ===
+Autotools requierments:
+
+ automake 1.11
+ autoconf 2.64
+ libtool 2.2
+
+Getting WIT, compiling and running:
+
+    $ git clone https://github.com/mchalupa/wayland-integration-tests
+    $ cd wayland-integration-tests
+    $ ./autogen.sh
+    $ make
+    $ make check
+
+When only make is run then the framework is compiled. Tests are run by make check.
+
+
+=== Running WIT ===
+
+    $ make check
+
+will compile and run all tests in test/ directory.
+
+=== Versioning ===
+
+WIT versioning should follow wayland's versioning e. g. WIT tests for wayland
+of version a.b.c should have version a.b.c (or higher, considering backward
+compability). Following this rule, it is possible that WIT versions will be
+unconsistent (for example 1.2, 1.2.1, 1.2.9 - we wrote tests for 1.2., 1.2.1 and
+then we changed/wrote new tests for wayland 1.2.9 and tests for versions between
+this range are missing).
