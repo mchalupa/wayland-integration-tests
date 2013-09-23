@@ -21,6 +21,7 @@ AC_SUBST([WIT_VERSION], [wit_version])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([config])
+AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([1.11 foreign no-dist-gzip dist-xz])
 
