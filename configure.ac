@@ -39,10 +39,8 @@ PKG_PROG_PKG_CONFIG()
 TESTS_CFLAGS=
 TESTS_LIBS=
 
-if test "x$GCC" = "xyes"; then
-	GCC_CFLAGS="-Wall -Wextra -g"
-fi
-AC_SUBST(GCC_CFLAGS)
+COMPILER_CFLAGS="-Wall -Wextra -g -O0"
+AC_SUBST([COMPILER_CFLAGS])
 
 # check wayland's presence
 PKG_CHECK_MODULES([WAYLAND_SERVER], [wayland-server],\
