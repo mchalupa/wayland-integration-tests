@@ -277,6 +277,7 @@ wit_display_create_client(struct wit_display *disp,
 	int sockv[2];
 	pid_t pid;
 	int stat;
+	int test = 0;
 
 	stat = socketpair(AF_UNIX, SOCK_STREAM, 0, sockv);
 	assertf(stat == 0,
@@ -288,6 +289,14 @@ wit_display_create_client(struct wit_display *disp,
 	if (pid == 0) {
 		close(sockv[1]);
 		close(disp->client_sock[1]);
+
+		/* just test if connection is established */
+		stat = read(disp->client_sock[0], &test, sizeof(int));
+		assertf(stat == sizeof(int), "Connection reading error");
+		assertf(test == 0xbeef, "Connection error");
+		test = 0xdaf;
+		stat = write(disp->client_sock[0], &test, sizeof(int));
+		assertf(stat == sizeof(int), "Connection writing error");
 
 		/* abort() itself doesn't imply failing test when it's forked,
 		 * we need call exit after abort() */
@@ -304,6 +313,14 @@ wit_display_create_client(struct wit_display *disp,
 		close(disp->client_sock[0]);
 
 		disp->client_pid = pid;
+
+		/* just test if connection is established */
+		test = 0xbeef;
+		stat = write(disp->client_sock[1], &test, sizeof(int));
+		assertf(stat == sizeof(int), "Connection writing error");
+		stat = read(disp->client_sock[1], &test, sizeof(int));
+		assertf(stat == sizeof(int), "Connection reading error");
+		assertf(test == 0xdaf, "Connection error");
 
 		disp->client = wl_client_create(disp->display, sockv[1]);
 		if (!disp->client) {
@@ -355,6 +372,8 @@ void seat_bind(struct wl_client *, void *, uint32_t, uint32_t);
 static void
 display_create_globals(struct wit_display *d)
 {
+	assert(d);
+
 	if (d->config.globals == 0)
 		return;
 
