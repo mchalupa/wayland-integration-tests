@@ -25,4 +25,10 @@
 		fprintf(stderr,	__VA_ARGS__);					\
 	} while (0)
 
+#define ifdbg(cond, ...)			\
+	do {					\
+		if (cond)			\
+			dbg(__VA_ARGS__);	\
+	} while (0)
+
 #endif /* __WIT_ASSERT_H__ */
