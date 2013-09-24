@@ -58,6 +58,9 @@ if test "x$HAVE_WAYLAND_CLIENT" != "xyes"; then
 	AC_MSG_ERROR([Need wayland-client libraries to compile])
 fi
 
+TESTS_CFLAGS="$WAYLAND_CLIENT_CFLAGS $WAYLAND_SERVER_CFLAGS"
+TESTS_LIBS="$WAYLAND_CLIENT_LIBS $WAYLAND_SERVER_LIBS"
+
 # check wayland's version
 PKG_CHECK_MODULES([WAYLAND_VERSION], [wayland-server >= $WIT_VERSION],\
 			[],\
@@ -68,13 +71,13 @@ PKG_CHECK_MODULES([LIBUNWIND], [libunwind],\
 
 if test "x$HAVE_LIBUNWIND" = "xyes"; then
 	AC_DEFINE(HAVE_LIBUNWIND, [1], [Allow use libunwind to printing backtrace])
-	TESTS_CFLAGS=$LIBUNWIND_CFLAGS
-	TESTS_LIBS=$LIBUNWIND_LIBS
+	TESTS_CFLAGS="$LIBUNWIND_CFLAGS $TESTS_CFLAGS"
+	TESTS_LIBS="$LIBUNWIND_LIBS $TESTS_LIBS"
 fi
 
 #export options to makefiles
-AC_SUBST(TESTS_LIBS)
-AC_SUBST(TESTS_CFLAGS)
+AC_SUBST([TESTS_LIBS])
+AC_SUBST([TESTS_CFLAGS])
 
 AC_CONFIG_FILES([Makefile
 		 src/Makefile
