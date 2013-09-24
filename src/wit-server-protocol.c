@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "wayland-server.h"
-//#include "wayland-client-protocol.h"
 #include "wit-assert.h"
 #include "server.h"
 
@@ -58,6 +57,7 @@ seat_get_keyboard(struct wl_client *client, struct wl_resource *resource,
 
 	if (!(d->config.resources & CONF_KEYBOARD))
 		return;
+
 	res = wl_resource_create(client, &wl_keyboard_interface, 1, id);
 	assertf(res, "Failed creating resource for keyboard");
 	wl_resource_set_user_data(res, d);
