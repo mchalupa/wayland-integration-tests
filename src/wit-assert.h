@@ -20,7 +20,7 @@
 
 #define dbg(...) 								\
 	do {									\
-		fprintf(stderr, "{{%6d | %s in %s: %d: | ", getpid(),		\
+		fprintf(stderr, "[%d | %s in %s: %d] ", getpid(),		\
 				__FUNCTION__, __FILE__, __LINE__);		\
 		fprintf(stderr,	__VA_ARGS__);					\
 	} while (0)
