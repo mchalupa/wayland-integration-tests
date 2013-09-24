@@ -15,3 +15,5 @@ LDADD = $(top_builddir)/src/libwit-server.a \
 	$(top_builddir)/src/libwit-client.a \
 	$(TESTS_LIBS) -ldl
 
+debug:
+	@echo -e "LDADD = ${LDADD}\nAM_CPPFLAGS=${AM_CPPFLAGS}\nAM_CFLAGS=${AM_CFLAGS}\n"
