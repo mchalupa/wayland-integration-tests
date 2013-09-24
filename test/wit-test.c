@@ -21,6 +21,7 @@
  */
 
 #include <assert.h>
+#include <wayland-client.h>
 
 #include "test-runner.h"
 #include "wit.h"
@@ -159,4 +160,47 @@ TEST(config_tst)
 	assert(d->config.options == ~CONF_ALL);
 
 	wit_display_destroy(d);
+}
+
+static int
+client_populate_main(int sock)
+{
+	struct wit_client *c = wit_client_populate(sock);
+	assert(c);
+	assert(c->display);
+	assert(c->registry);
+
+	/* we have default settings, check it */
+	assert(c->seat);
+	/*
+	assert(c->pointer);
+	assert(c->keyboard);
+	assert(c->touch);
+	*/
+
+	wit_client_free(c);
+
+	return EXIT_SUCCESS;
+}
+
+TEST(client_populate_tst)
+{
+	struct wit_display *d = wit_display_create(NULL);
+	wit_display_create_client(d, client_populate_main);
+
+	int stat = wit_display_run(d);
+
+	/* we have default settings */
+	assert(d->globals.seat);
+	assert(d->globals.global == NULL);
+	assert(d->resources.seat);
+	/*
+	assert(d->resources.pointer);
+	assert(d->resources.keyboard);
+	assert(d->resources.touch);
+	*/
+
+	wit_display_destroy(d);
+
+	exit(stat);
 }
