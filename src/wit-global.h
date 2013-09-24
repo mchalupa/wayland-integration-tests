@@ -7,8 +7,8 @@
 
 
 enum optype {
-	CAN_CONTINUE = 1, 	/* client can continue */
-	EVENT_COUNT,   		/* how many events can display emit */
+	CAN_CONTINUE = 1,	/* client can continue */
+	EVENT_COUNT,	   	/* how many events can display emit */
 	RUN_FUNC		/* run user's func */
 };
 
