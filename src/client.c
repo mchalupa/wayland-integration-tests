@@ -95,7 +95,6 @@ wit_client_free(struct wit_client *c)
 	assertf(wl_display_get_error(c->display) == 0,
 		"An error in display occured");
 
-
 	wl_registry_destroy(c->registry);
 
 	if(c->seat)
