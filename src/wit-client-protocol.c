@@ -27,6 +27,7 @@
 #include <wayland-server.h>
 
 #include "client.h"
+#include "wit-assert.h"
 
 
 /* -----------------------------------------------------------------------------
@@ -37,6 +38,12 @@ registry_handle_global(void *data, struct wl_registry *registry,
 		       uint32_t id, const char *interface, uint32_t version)
 {
 	struct wit_client *cl = data;
+	if (strcmp(interface, "wl_seat") == 0) {
+		cl->seat = wl_registry_bind(registry, id, &wl_seat_interface,
+					    version);
+		assertf(cl->seat, "Binding to registry for seat failed");
+		wl_display_roundtrip(cl->display);
+	}
 }
 
 const struct wl_registry_listener registry_default_listener = {
