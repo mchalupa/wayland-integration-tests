@@ -105,7 +105,7 @@ send_client(struct wit_display *disp, enum optype op, ...)
 {
 	int stat;
 	va_list vl;
-	_Bool cont;
+	int cont;
 
 	/* enum optype is defined from 1 */
 	assertf(op > 0, "Wrong operation");
@@ -238,8 +238,8 @@ run_client(int (*client_main)(int), int wayland_sock, int client_sock)
 {
 	int stat;
 	char s[32];
-	enum optype op;
-	_Bool can_continue = 0;
+	enum optype op = 0;
+	int can_continue = 0;
 
 	stat = read(client_sock, &op, sizeof(op));
 	stat += read(client_sock, &can_continue, sizeof(int));
