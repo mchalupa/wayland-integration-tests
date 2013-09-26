@@ -79,6 +79,7 @@ AC_SUBST([TESTS_CFLAGS])
 
 AC_CONFIG_FILES([Makefile
 		 src/Makefile
-		 test/Makefile])
+		 test/Makefile
+		 test/test-runner/Makefile])
 
 AC_OUTPUT
