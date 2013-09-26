@@ -29,6 +29,64 @@
 #include "client.h"
 #include "wit-assert.h"
 
+/* -----------------------------------------------------------------------------
+    Seat listener
+   -------------------------------------------------------------------------- */
+static void
+seat_handle_caps(void *data, struct wl_seat *seat, enum wl_seat_capability caps)
+{
+	assertf(data, "No data when catched seat");
+	assertf(seat, "No seat when catched seat");
+
+	struct wit_client *cl = data;
+
+	if (caps & WL_SEAT_CAPABILITY_POINTER) {
+		if (cl->pointer != NULL)
+			wl_pointer_destroy(cl->pointer);
+
+		cl->pointer = wl_seat_get_pointer(seat);
+		assertf(cl->pointer,
+			"wl_seat_get_pointer returned NULL in seat_listener function");
+	}
+
+	if (caps & WL_SEAT_CAPABILITY_KEYBOARD) {
+		if (cl->keyboard != NULL)
+			wl_keyboard_destroy(cl->keyboard);
+
+		cl->keyboard = wl_seat_get_keyboard(seat);
+		assertf(cl->keyboard,
+			"Got no keyboard from seat");
+	}
+
+	if (caps & WL_SEAT_CAPABILITY_TOUCH) {
+		if (cl->touch != NULL)
+			wl_touch_destroy(cl->touch);
+
+		cl->touch= wl_seat_get_touch(seat);
+		assertf(cl->touch,
+			"Got no touch from seat");
+	}
+
+	/* block until synced, or client will end too early */
+	if (caps)
+		wl_display_roundtrip(cl->display);
+
+	assertf(wl_display_get_error(cl->display) == 0,
+		"An error in display occured");
+}
+
+/*
+static void
+seat_handle_name(void *data, struct wl_seat *wl_seat, const char *name)
+{
+	struct client *c = data;
+}
+*/
+
+const struct wl_seat_listener seat_default_listener = {
+	seat_handle_caps,
+	NULL /* seat_handle_name */
+};
 
 /* -----------------------------------------------------------------------------
     Registry listener
@@ -42,11 +100,15 @@ registry_handle_global(void *data, struct wl_registry *registry,
 		cl->seat = wl_registry_bind(registry, id, &wl_seat_interface,
 					    version);
 		assertf(cl->seat, "Binding to registry for seat failed");
+
+		wl_seat_add_listener(cl->seat, &seat_default_listener, cl);
 		wl_display_roundtrip(cl->display);
+		assertf(wl_display_get_error(cl->display) == 0,
+			"An error in display occured");
 	}
 }
 
 const struct wl_registry_listener registry_default_listener = {
 	registry_handle_global,
-	NULL
+	NULL /* TODO */
 };
