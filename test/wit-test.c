@@ -172,11 +172,9 @@ client_populate_main(int sock)
 
 	/* we have default settings, check it */
 	assert(c->seat);
-	/*
 	assert(c->pointer);
 	assert(c->keyboard);
 	assert(c->touch);
-	*/
 
 	wit_client_free(c);
 
@@ -194,11 +192,9 @@ TEST(client_populate_tst)
 	assert(d->globals.seat);
 	assert(d->globals.global == NULL);
 	assert(d->resources.seat);
-	/*
 	assert(d->resources.pointer);
 	assert(d->resources.keyboard);
 	assert(d->resources.touch);
-	*/
 
 	wit_display_destroy(d);
 
