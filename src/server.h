@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "configuration.h"
+#include "events.h"
 
 
 /* Following macro goes through anonymous structures globals of structure wit_display */
@@ -50,6 +51,8 @@ struct wit_display {
 	void (*user_func)(void *);
 	void *user_func_data;
 
+	struct wit_eventarray *events;
+
 	struct wit_config config;
 };
 
@@ -79,4 +82,6 @@ void
 wit_display_add_user_func(struct wit_display *d,
 			  void (*func) (void *), void *data);
 
+void
+wit_display_add_events(struct wit_display *d, struct wit_eventarray *e);
 #endif /* __WIT_SERVER_H__ */

@@ -36,6 +36,7 @@
 #include "wit-global.h"
 #include "wit-assert.h"
 #include "server.h"
+#include "events.h"
 
 const struct wit_config wit_default_config = {
 	CONF_SEAT,
@@ -359,6 +360,15 @@ wit_display_add_user_func(struct wit_display *disp,
 {
 	disp->user_func = func;
 	disp->user_func_data = data;
+}
+
+void
+wit_display_add_events(struct wit_display *d, struct wit_eventarray *e)
+{
+	assert(d);
+	ifdbg(d->events, "Rewriting old eventarray\n");
+
+	d->events = e;
 }
 
 /*
