@@ -58,7 +58,6 @@ wit_eventarray_add(struct wit_eventarray *ea, struct wit_event *event, ...)
 	int i = 0;
 	const char *signature
 			= event->interface->events[event->opcode].signature;
-	dbg("signature: %s\n", signature);
 	assert(signature);
 
 	struct event *e = calloc(1, sizeof *e);
