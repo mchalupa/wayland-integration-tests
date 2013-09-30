@@ -129,3 +129,29 @@ wit_client_call_user_func(struct wit_client *cl)
 	assertf(stat == sizeof(op), "Sent %d instead of %lu bytes (sendig optype)",
 		stat, sizeof(op));
 }
+
+void
+wit_client_ask_for_events(struct wit_client *cl, int n)
+{
+	int stat;
+
+	assertf(cl, "No client's structure passed");
+	assertf(n >= 0, "Asked for negative number of events");
+
+	/* kick to display to have its attention */
+	stat = kill(getppid(), SIGUSR1);
+	assertf(stat == 0,
+		"Failed sending signal to start emitting events");
+
+	enum optype op = EVENT_COUNT;
+	stat = write(cl->sock, &op, sizeof(op));
+	assertf(stat == sizeof(op), "Sent %d instead of %lu bytes (sendig optype)",
+		stat, sizeof(op));
+
+	stat = write(cl->sock, &n, sizeof(int));
+	assertf(stat == sizeof(op), "Sent %d instead of %lu bytes (sending count)",
+		stat, sizeof(op));
+
+	cl->emitting = 1;
+
+}

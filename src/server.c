@@ -69,11 +69,52 @@ handle_sigchld(int signum, void *data)
 	return 0;
 }
 
+static int
+emit_events(struct wit_display *d, int n)
+{
+	int i = 0;
+	int m, count;
+
+	assertf(d, "No compositor");
+	assertf(n >= 0, "Wrong value of n");
+	assertf(d->events, "No eventarray");
+
+	dbg("Emitting events\n%s%s%s%s",
+		d->resources.seat 	? "\tHave resource seat\n" 	: "",
+		d->resources.pointer 	? "\tHave resource pointer\n" 	: "",
+		d->resources.keyboard 	? "\tHave resource keyboard\n" 	: "",
+		d->resources.touch	? "\tHave resource touch\n" 	: ""
+	);
+
+	/* how many events can be emitted (for assert()) */
+	count = d->events->count - d->events->index;
+
+	if (count == 0) {
+		dbg("No events in eventarray\n");
+		return 0;
+	}
+
+	if (n == 0) { /* 0 means all */
+		while(wit_eventarray_emit_one(d,d->events) > 0)
+			i++;
+		assertf(i == count - 1, "Emitted %d instead of %d events", i, count);
+	} else {
+		for (m = 1; i < n && m > 0; i++) {
+			m = wit_eventarray_emit_one(d, d->events);
+		}
+		assertf(i == n || i == count,
+			"Emitted %d instead of %d events", i, n);
+	}
+
+	return i;
+}
+
+
 /* When display gets this signal it reads from socket what client want */
 static int
 handle_sigusr1(int signum, void *data)
 {
-	int stat;
+	int stat, count;
 	enum optype op;
 	struct wit_display *disp = data;
 
@@ -89,6 +130,13 @@ handle_sigusr1(int signum, void *data)
 	switch(op) {
 		case CAN_CONTINUE:
 			assertf(0, "Got CAN_CONTINUE from child");
+		case EVENT_COUNT:
+			stat = read(disp->client_sock[1], &count, sizeof(count));
+			assertf(stat == sizeof(count), "Reading socket error");
+
+			stat = emit_events(disp, count);
+			dbg("Emitted %d events (asked for %d)\n", stat, count);
+			break;
 		case RUN_FUNC:
 			dbg("Running user's function\n");
 			disp->user_func(disp->user_func_data);
