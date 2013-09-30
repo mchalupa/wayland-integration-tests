@@ -21,7 +21,7 @@ if [ "$?" != "0" ]; then
 fi
 
 # set input file
-if [ -z "$1" ]; then
+if [ -z "$1" -o "$1" = "-" ]; then
 	FILE=/dev/stdin
 else
 	if [ -f "$1" ]; then
