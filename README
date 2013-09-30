@@ -7,11 +7,14 @@ of interaction between wayland's display and client.
 
 Directory structure:
 TOP \
-    src/    - framework sources
-    test/   - tests, including self-tests
+    | src/               - WIT framework sources
+    | test/              - tests, including self-tests
+          | test-runner/ - testing framework
+    | tools/             - tools for manipulating with tests outcomes
 
 Part of this code was taken from wayland test-suite (namely test/test-runner.c,
-test/test-runner.h and test/test-helpers.c).
+test/test-runner.h and test/test-helpers.c). Backtrace function in test-runner.c
+is from weston.
 
 
 === Dependencies ===
@@ -46,6 +49,21 @@ When only make is run then the framework is compiled. Tests are run by make chec
     $ make check
 
 will compile and run all tests in test/ directory.
+
+You can use tools/colorlog to colorize tests output. When no argument
+to colorlog is given, it reads from stdin, otherwise it searches for
+files in . or test/ directory. Also you don't have to give it full name,
+because it looks for "arg".log and "arg"-test.log.
+Another parameters can be pattern that it should look for and colour
+of text matching the pattern (default = yellow).
+Examples:
+    $ tools/colorlog abc-test.log  # following three command will do the same
+    $ tools/colorlog abc-test      # that is print colored output of abc-test
+    $ tools/colorlog abc
+
+    $ tools/colorlog abc delete_id # color even lines containing text 'delete_id'
+    $ tools/colorlog abc done '\033[0;31m' # color even lines containing text
+                                           # done with given color
 
 === Versioning ===
 
