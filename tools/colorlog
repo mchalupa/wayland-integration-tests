@@ -81,8 +81,11 @@ cat "$FILE" | while read LINE; do
 		fi
 	fi
 
+	# STATUS MESSAEGES
+	if echo "$LINE" | grep -q -E '^test.*fail\.' ; then
+		echo -e "${REDB}${LINE}${END}"
 	# ERRORS
-	if echo "$LINE" | grep -q -i error; then
+	elif echo "$LINE" | grep -q -i 'error\|fail\|assert'; then
 		echo -e "${RED}${LINE}${END}"
 
 	# DEBUG MESSAEGES
@@ -92,10 +95,6 @@ cat "$FILE" | while read LINE; do
 	# WAYLAND DEBUG MESSAEGES
 	elif echo "$LINE" | grep -q -E '\[[0-9]+\.[0-9]+]' ; then
 		echo -e "${GRAY}${LINE}${END}"
-
-	# STATUS MESSAEGES
-	elif echo "$LINE" | grep -q -E '^test.*fail\.' ; then
-		echo -e "${REDB}${LINE}${END}"
 
 	# NORMAL PRINTING
 	else
