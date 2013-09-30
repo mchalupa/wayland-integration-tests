@@ -41,6 +41,9 @@ wit_eventarray_add(struct wit_eventarray *ea, struct wit_event *event, ...);
 int
 wit_eventarray_emit_one(struct wit_display *d, struct wit_eventarray *ea);
 
+int
+wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b);
+
 void
 wit_eventarray_free(struct wit_eventarray *ea);
 #endif /* __WIT_EVENTS_H__ */
