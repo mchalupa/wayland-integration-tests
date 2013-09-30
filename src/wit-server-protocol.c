@@ -37,8 +37,10 @@ seat_get_pointer(struct wl_client *client, struct wl_resource *resource,
 	struct wit_display *d = wl_resource_get_user_data(resource);
 	assertf(d, "No user data in resource");
 
-	if (!(d->config.resources & CONF_POINTER))
+	if (!(d->config.resources & CONF_POINTER)) {
+		dbg("Creating pointer resource suppressed\n");
 		return;
+	}
 
 	res = wl_resource_create(client, &wl_pointer_interface, 1, id);
 	assertf(res, "Failed creating resource for pointer");
@@ -55,8 +57,10 @@ seat_get_keyboard(struct wl_client *client, struct wl_resource *resource,
 	struct wit_display *d = wl_resource_get_user_data(resource);
 	assertf(d, "No user data in resource");
 
-	if (!(d->config.resources & CONF_KEYBOARD))
+	if (!(d->config.resources & CONF_KEYBOARD)) {
+		dbg("Creating keyboard resource suppressed\n");
 		return;
+	}
 
 	res = wl_resource_create(client, &wl_keyboard_interface, 1, id);
 	assertf(res, "Failed creating resource for keyboard");
@@ -73,8 +77,10 @@ seat_get_touch(struct wl_client *client, struct wl_resource *resource,
 	struct wit_display *d = wl_resource_get_user_data(resource);
 	assertf(d, "No user data in resource");
 
-	if (!(d->config.resources & CONF_TOUCH))
+	if (!(d->config.resources & CONF_TOUCH)) {
+		dbg("Creating touch resource suppressed\n");
 		return;
+	}
 
 	res = wl_resource_create(client, &wl_touch_interface, 1, id);
 	assertf(res, "Failed creating resource for touch");
@@ -96,8 +102,10 @@ seat_bind(struct wl_client *client, void *data,
 	struct wit_display *d = data;
 	enum wl_seat_capability cap = 0;
 
-	if (!(d->config.resources & CONF_SEAT))
+	if (!(d->config.resources & CONF_SEAT)) {
+		dbg("Creating seat resource suppressed\n");
 		return;
+	}
 
 	/* set capabilities according to configuration. Can be changed later */
 	if (d->config.resources & CONF_POINTER)
