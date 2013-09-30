@@ -17,6 +17,8 @@ struct wit_client {
 	int sock;
 
 	struct {
+		struct wl_registry_listener *registry;
+		struct wl_seat_listener *seat;
 		struct wl_pointer_listener *pointer;
 		struct wl_keyboard_listener *keyboard;
 		struct wl_touch_listener *touch;
@@ -43,4 +45,8 @@ wit_client_call_user_func(struct wit_client *cl);
 
 void
 wit_client_ask_for_events(struct wit_client *cl, int n);
+
+void
+wit_client_add_listener(struct wit_client *cl, const char *interface,
+			void *listener);
 #endif /* __WIT_CLIENT_H__ */
