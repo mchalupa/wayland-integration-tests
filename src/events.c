@@ -20,6 +20,7 @@
  * OF THIS SOFTWARE.
  */
 
+#include <string.h>
 #include <wayland-server.h>
 #include <wayland-util.h>
 
@@ -169,7 +170,6 @@ print_bytes(void *src, int n)
 	return str;
 }
 
-/*
 static int
 compare_event_arguments(struct event *e1, struct event *e2, unsigned pos)
 {
@@ -188,7 +188,7 @@ compare_event_arguments(struct event *e1, struct event *e2, unsigned pos)
 				"different argument %d\n "
 				"Bytes: %s != %s\n"
 				"String: '%*s' != '%*s'\n",
-				pos, event_type_string(e1->et), i,
+				pos, event_type_string(&e1->event), i,
 				bytes1, bytes2,
 				(int) sizeof(e1->args[i]), (char *) &e1->args[i],
 				(int) sizeof(e2->args[i]), (char *) &e2->args[i]);
@@ -231,10 +231,14 @@ wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b)
 		e1 = a->events[n];
 		e2 = b->events[n];
 
-		if (e1->et != e2->et) {
-			dbg("Different event type on position %d "
-				"have %s and %s\n", n, event_type_string(e1->et),
-							event_type_string(e2->et));
+		if (e1->event.interface != e2->event.interface)
+			dbg("Different interfaces (%s and %s)\n",
+			    e1->event.interface->name,
+			    e2->event.interface->name);
+		if (e1->event.opcode != e2->event.opcode) {
+			dbg("Different event opcode on position %d "
+			    "have %d (%s) and %d (%s)\n", n, e1->event.opcode, event_type_string(&e1->event),
+			    e2->event.opcode, event_type_string(&e2->event));
 			nok = 1;
 		} else if (compare_event_arguments(e1, e2, n) != 0)
 			nok = 1;
@@ -245,17 +249,16 @@ wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b)
 		if (a->count < b->count) {
 			for(; n < b->count; n++)
 				dbg("Extra event on position %d (%s)\n",
-				    n, event_type_string(b->events[n]->et));
+				    n, event_type_string(&b->events[n]->event));
 		} else {
 			for(; n < a->count; n++)
 				dbg("Extra event on position %d (%s)\n",
-				    n, event_type_string(a->events[n]->et));
+				    n, event_type_string(&a->events[n]->event));
 		}
 	}
 
 	return nok;
 }
-*/
 
 void
 wit_eventarray_free(struct wit_eventarray *ea)
