@@ -25,7 +25,10 @@ USER_COLOR=
 PATTERN=
 
 RED="\033[1;31m"
+REDB="\033[1;41m"
 GREEN="\033[0;32m"
+GREENB="\033[1;42m"
+GRAY="\033[0;37m"
 YELLOW="\033[1;33m"
 END="\033[m"
 
@@ -85,6 +88,14 @@ cat "$FILE" | while read LINE; do
 	# DEBUG MESSAEGES
 	elif echo "$LINE" | grep -q -E '\[[0-9]+\s+\|.*\]' ; then
 		echo -e "${GREEN}${LINE}${END}"
+
+	# WAYLAND DEBUG MESSAEGES
+	elif echo "$LINE" | grep -q -E '\[[0-9]+\.[0-9]+]' ; then
+		echo -e "${GRAY}${LINE}${END}"
+
+	# STATUS MESSAEGES
+	elif echo "$LINE" | grep -q -E '^test.*fail\.' ; then
+		echo -e "${REDB}${LINE}${END}"
 
 	# NORMAL PRINTING
 	else
