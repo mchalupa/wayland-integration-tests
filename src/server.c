@@ -97,7 +97,8 @@ emit_events(struct wit_display *d, int n)
 	if (n == 0) { /* 0 means all */
 		while(wit_eventarray_emit_one(d,d->events) > 0)
 			i++;
-		assertf(i == count - 1, "Emitted %d instead of %d events", i, count);
+		/* i begun at 0, so we have to add 1 before comparing */
+		assertf(++i == count, "Emitted %d instead of %d events", i, count);
 	} else {
 		for (m = 1; i < n && m > 0; i++) {
 			m = wit_eventarray_emit_one(d, d->events);
