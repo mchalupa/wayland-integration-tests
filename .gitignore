@@ -2,6 +2,7 @@
 *.gch
 *.lo
 *.la
+*.a
 *.o
 *.log
 *.status
@@ -24,4 +25,11 @@ src/.wit-assert.h.swo
 src/Makefile
 stamp-h1
 test/.deps/
+test/.libs/
+test/test-runner/.deps/
+test/test-runner/.libs/
 test/Makefile
+test/test-runner/Makefile
+
+#test binaries
+test/*-test
