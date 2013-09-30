@@ -21,6 +21,9 @@ struct wit_client {
 		struct wl_keyboard_listener *keyboard;
 		struct wl_touch_listener *touch;
 	} listener;
+
+	/* set value 1 here, when client asked for emitting events */
+	int emitting;
 };
 
 /*
@@ -37,4 +40,7 @@ wit_client_free(struct wit_client *c);
 
 void
 wit_client_call_user_func(struct wit_client *cl);
+
+void
+wit_client_ask_for_events(struct wit_client *cl, int n);
 #endif /* __WIT_CLIENT_H__ */
