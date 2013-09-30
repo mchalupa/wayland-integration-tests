@@ -2,7 +2,8 @@ lib_LIBRARIES = libwit-server.a libwit-client.a
 
 libwit_server_a_SOURCES =	\
 	wit-server-protocol.c 	\
-	server.c
+	server.c		\
+	events.c
 
 libwit_client_a_SOURCES =	\
 	wit-client-protocol.c	\
