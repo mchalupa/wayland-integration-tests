@@ -60,23 +60,23 @@ struct wit_display *
 wit_display_create(struct wit_config *);
 
 int
-wit_display_run(struct wit_display *);
+wit_display_run(struct wit_display *d);
 
 void
-wit_display_destroy(struct wit_display *);
+wit_display_destroy(struct wit_display *d);
 
 void
 wit_display_create_client(struct wit_display *disp,
 			  int (*client_main)(int));
 void
-wit_display_add_user_data(struct wit_display *c, void *data,
+wit_display_add_user_data(struct wit_display *d, void *data,
 			  void (*destroy_func)(void *));
 
 void *
-wit_display_get_user_data(struct wit_display *c);
+wit_display_get_user_data(struct wit_display *d);
 
 void
-wit_display_add_user_func(struct wit_display *c,
+wit_display_add_user_func(struct wit_display *d,
 			  void (*func) (void *), void *data);
 
 #endif /* __WIT_SERVER_H__ */
