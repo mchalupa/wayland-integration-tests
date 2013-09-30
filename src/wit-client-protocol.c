@@ -101,7 +101,8 @@ registry_handle_global(void *data, struct wl_registry *registry,
 					    version);
 		assertf(cl->seat, "Binding to registry for seat failed");
 
-		wl_seat_add_listener(cl->seat, &seat_default_listener, cl);
+		wit_client_add_listener(cl, "wl_seat", &seat_default_listener);
+
 		wl_display_roundtrip(cl->display);
 		assertf(wl_display_get_error(cl->display) == 0,
 			"An error in display occured");

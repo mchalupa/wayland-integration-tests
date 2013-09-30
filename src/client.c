@@ -98,7 +98,7 @@ wit_client_populate(int sock)
 	c->registry = wl_display_get_registry(c->display);
 	assertf(c->registry, "Couldn't get registry");
 
-	wl_registry_add_listener(c->registry, &registry_default_listener, c);
+	wit_client_add_listener(c, "wl_registry", &registry_default_listener);
 	wl_display_dispatch(c->display);
 
 	assertf(wl_display_get_error(c->display) == 0,
