@@ -144,7 +144,7 @@ wit_eventarray_emit_one(struct wit_display *d, struct wit_eventarray *ea)
 }
 
 static const char *
-event_type_string(struct wit_event *e)
+event_name_string(struct wit_event *e)
 {
 	return e->interface->events[e->opcode].name;
 }
@@ -188,7 +188,7 @@ compare_event_arguments(struct event *e1, struct event *e2, unsigned pos)
 				"different argument %d\n "
 				"Bytes: %s != %s\n"
 				"String: '%*s' != '%*s'\n",
-				pos, event_type_string(&e1->event), i,
+				pos, event_name_string(&e1->event), i,
 				bytes1, bytes2,
 				(int) sizeof(e1->args[i]), (char *) &e1->args[i],
 				(int) sizeof(e2->args[i]), (char *) &e2->args[i]);
@@ -220,7 +220,7 @@ wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b)
 	assert(b);
 
 	if (a->count != b->count) {
-		dbg("Different number of events in %s wit_eventarray (%d and %d)\n",
+		dbg("Different number of events in %s wit_eventarray (first %d and second %d)\n",
 		    (a->count < b->count) ? "second" : "first", a->count, b->count);
 
 		nok = 1;
@@ -232,13 +232,13 @@ wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b)
 		e2 = b->events[n];
 
 		if (e1->event.interface != e2->event.interface)
-			dbg("Different interfaces (%s and %s)\n",
-			    e1->event.interface->name,
-			    e2->event.interface->name);
+			dbg("Different interfaces on position %d: (%s and %s)\n", n,
+			    e1->event.interface->name, e2->event.interface->name);
 		if (e1->event.opcode != e2->event.opcode) {
-			dbg("Different event opcode on position %d "
-			    "have %d (%s) and %d (%s)\n", n, e1->event.opcode, event_type_string(&e1->event),
-			    e2->event.opcode, event_type_string(&e2->event));
+			dbg("Different event opcode on position %d: "
+			    "have %d (%s->%s) and %d (%s->%s)\n", n, e1->event.opcode, e1->event.interface->name,
+			    event_name_string(&e1->event), e2->event.opcode, e2->event.interface->name,
+			    event_name_string(&e2->event));
 			nok = 1;
 		} else if (compare_event_arguments(e1, e2, n) != 0)
 			nok = 1;
@@ -248,12 +248,14 @@ wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b)
 	if (nok && wrong_count) {
 		if (a->count < b->count) {
 			for(; n < b->count; n++)
-				dbg("Extra event on position %d (%s)\n",
-				    n, event_type_string(&b->events[n]->event));
+				dbg("Extra event on position %d (%s->%s)\n",
+				    n, b->events[n]->event.interface->name,
+				    event_name_string(&b->events[n]->event));
 		} else {
 			for(; n < a->count; n++)
-				dbg("Extra event on position %d (%s)\n",
-				    n, event_type_string(&a->events[n]->event));
+				dbg("Extra event on position %d (%s->%s)\n",
+				    n, a->events[n]->event.interface->name,
+				    event_name_string(&a->events[n]->event));
 		}
 	}
 
