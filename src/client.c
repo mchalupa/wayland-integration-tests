@@ -44,7 +44,7 @@ wit_client_add_listener(struct wit_client *cl, const char *interface,
 	assertf(cl);
 	assert(interface);
 
-	ifdbg(listener != NULL, "Adding NULL listener\n");
+	ifdbg(listener == NULL, "Adding NULL listener (%s)\n", interface);
 
 	if (strcmp(interface, "wl_pointer") == 0) {
 		ifdbg(cl->listener.pointer, "Rewriting pointer listener\n");
