@@ -43,6 +43,11 @@ struct wit_eventarray {
 							= {(intf), (opcode)};	\
 	const struct wit_event *(eventname) = &__wit_event_##eventname##_;
 
+/* the same as WIT_EVENT_DEFINE but with eventarray, initialize it with nuls */
+#define WIT_EVENTARRAY_DEFINE(name)						\
+	static struct wit_eventarray __wit_eventarray_##name##_ = {{0}, 0, 0};	\
+	struct wit_eventarray *(name) = &__wit_eventarray_##name##_;
+
 void
 wit_eventarray_add(struct wit_eventarray *ea, struct wit_event *event, ...);
 
