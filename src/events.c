@@ -41,6 +41,11 @@ wit_eventarray_add(struct wit_eventarray *ea, struct wit_event *event, ...)
 	assertf(ea, "wit_eventarray is NULL");
 	assert(event);
 
+	/* check if event exist */
+	assert(event->interface);
+	assertf(event->opcode < event->interface->event_count, "Event opcode is illegal (%d for %s)",
+		event->opcode, event->interface->name);
+
 	va_list vl;
 	int index = 0;
 	int i = 0;
@@ -51,8 +56,10 @@ wit_eventarray_add(struct wit_eventarray *ea, struct wit_event *event, ...)
 	struct event *e = calloc(1, sizeof *e);
 	assert(e && "Out of memory");
 
+	/* copy event */
 	e->event = *event;
 
+	/* copy arguments */
 	va_start(vl, event);
 	while(signature[i]) {
 		assertf(index < MAX_ARGS_NO , "Too much arguments (wit issue, not wayland)");
