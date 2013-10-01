@@ -34,19 +34,6 @@ struct event {
 	union wl_argument args[MAX_ARGS_NO];
 };
 
-/* XXX, this doesn't need to be dynamically allocated... */
-struct wit_event *
-wit_event_define(const struct wl_interface *intf, uint32_t opcode)
-{
-	struct wit_event *ev = calloc(1, sizeof(struct wit_event));
-	assert(ev && "Out of memory");
-
-	ev->interface = intf;
-	ev->opcode = opcode;
-
-	return ev;
-}
-
 void
 wit_eventarray_add(struct wit_eventarray *ea, struct wit_event *event, ...)
 {
