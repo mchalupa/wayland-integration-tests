@@ -10,7 +10,7 @@ struct wit_display;
 
 /**
  * Usage:
- *  struct wit_event *send_motion = wit_event_define(&wl_pointer_interface, WL_POINTER_SEND_MOTION);
+ *  WIT_EVENT_DEFINE(send_motion, &wl_pointer_interface, WL_POINTER_MOTION);
  *
  *  wit_eventarray_add(send_motion, arg1, arg2, arg3, arg4);
  *  wit_eventarray_add(send_motion, 1, 2, 3, 4);
