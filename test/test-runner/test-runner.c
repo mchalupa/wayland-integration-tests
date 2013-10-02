@@ -208,6 +208,8 @@ print_backtrace(int signum)
 		if (ret < 0)
 			dbg("unw_step: %d\n", ret);
 	}
+
+	exit(signum);
 }
 
 #else
@@ -220,6 +222,7 @@ print_backtrace(int signum)
 	Dl_info info;
 
 	dbg("Backtrace for signal %d:\n", signum);
+	h
 
 	count = backtrace(buffer, 32);
 	for (i = 0; i < count; i++) {
@@ -229,6 +232,8 @@ print_backtrace(int signum)
 		    info.dli_sname ? info.dli_sname : "--",
 		    info.dli_fname);
 	}
+
+	exit(signum);
 }
 
 #endif
