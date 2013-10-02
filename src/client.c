@@ -47,37 +47,52 @@ wit_client_add_listener(struct wit_client *cl, const char *interface,
 	ifdbg(listener == NULL, "Adding NULL listener (%s)\n", interface);
 
 	if (strcmp(interface, "wl_pointer") == 0) {
-		ifdbg(cl->listener.pointer, "Rewriting pointer listener\n");
+		ifdbg(cl->listener.pointer, "Rewriting pointer listener (%p)\n",
+		      cl->listener.pointer);
 		cl->listener.pointer = (struct wl_pointer_listener *) listener;
 
 		if (cl->pointer)
 			wl_pointer_add_listener(cl->pointer,
 						cl->listener.pointer, cl);
+		else
+			dbg("Not adding listener. Pointer proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_keyboard") == 0) {
-		ifdbg(cl->listener.keyboard, "Rewriting keyboard listener\n");
+		ifdbg(cl->listener.keyboard, "Rewriting keyboard listener (%p)\n",
+		      cl->listener.keyboard);
 		cl->listener.keyboard = (struct wl_keyboard_listener *) listener;
 
 		if (cl->keyboard)
 			wl_keyboard_add_listener(cl->keyboard,
 						 cl->listener.keyboard, cl);
+		else
+			dbg("Not adding listener. Keyboard proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_touch") == 0) {
-		ifdbg(cl->listener.touch, "Rewriting touch listener\n");
+		ifdbg(cl->listener.touch, "Rewriting touch listener (%p)\n",
+		      cl->listener.touch);
 		cl->listener.touch = (struct wl_touch_listener *) listener;
 
 		if (cl->touch)
 			wl_touch_add_listener(cl->touch, cl->listener.touch, cl);
+		else
+			dbg("Not adding listener. Touch proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_seat") == 0) {
-		ifdbg(cl->listener.seat, "Rewriting seat listener\n");
+		ifdbg(cl->listener.seat, "Rewriting seat listener (%p)\n",
+		      cl->listener.seat);
 		cl->listener.seat = (struct wl_seat_listener *) listener;
 
 		if (cl->seat)
 			wl_seat_add_listener(cl->seat, cl->listener.seat, cl);
+		else
+			dbg("Not adding listener. Seat proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_registry") == 0) {
-		ifdbg(cl->listener.registry, "Rewriting registry listener\n");
+		ifdbg(cl->listener.registry, "Rewriting registry listener (%p)\n",
+		      cl->listener.pointer);
 		cl->listener.registry = (struct wl_registry_listener *) listener;
 
 		if (cl->registry)
 			wl_registry_add_listener(cl->registry, cl->listener.registry, cl);
+		else
+			dbg("Not adding listener. Registry proxy hasn't been created yet.\n");
 	}
 	else {
 		assertf(0, "Unknown type of interface");
