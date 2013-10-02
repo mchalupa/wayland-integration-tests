@@ -36,6 +36,8 @@ enum {
 	CONF_POINTER 	= 1 << 1,
 	CONF_KEYBOARD 	= 1 << 2,
 	CONF_TOUCH 	= 1 << 3,
+	CONF_COMPOSITOR = 1 << 4,
+	CONF_SURFACE	= 1 << 5,
 	/* FREE */
 
 	CONF_ALL 	= ~((uint32_t) 0)
