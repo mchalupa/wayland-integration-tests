@@ -72,6 +72,7 @@ if [ -n "$2" ]; then
 	fi
 fi
 
+IFS='\n'
 cat "$FILE" | while read LINE; do
 	# USER'S PATTERN
 	if [ -n "$PATTERN" ]; then
@@ -98,6 +99,6 @@ cat "$FILE" | while read LINE; do
 
 	# NORMAL PRINTING
 	else
-		echo "${LINE}"
+		echo -e "${LINE}"
 	fi
 done
