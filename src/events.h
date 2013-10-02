@@ -48,8 +48,8 @@ struct wit_eventarray {
 	static struct wit_eventarray __wit_eventarray_##name##_ = {{0}, 0, 0};	\
 	struct wit_eventarray *(name) = &__wit_eventarray_##name##_;
 
-void
-wit_eventarray_add(struct wit_eventarray *ea, struct wit_event *event, ...);
+unsigned int
+wit_eventarray_add(struct wit_eventarray *ea, const struct wit_event *event, ...);
 
 int
 wit_eventarray_emit_one(struct wit_display *d, struct wit_eventarray *ea);

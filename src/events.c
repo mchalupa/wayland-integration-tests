@@ -34,8 +34,8 @@ struct event {
 	union wl_argument args[MAX_ARGS_NO];
 };
 
-void
-wit_eventarray_add(struct wit_eventarray *ea, struct wit_event *event, ...)
+unsigned int
+wit_eventarray_add(struct wit_eventarray *ea, const struct wit_event *event, ...)
 {
 
 	assertf(ea, "wit_eventarray is NULL");
@@ -103,6 +103,8 @@ wit_eventarray_add(struct wit_eventarray *ea, struct wit_event *event, ...)
 
 	ea->events[ea->count] = e;
 	ea->count++;
+
+	return ea->count;
 }
 
 int
