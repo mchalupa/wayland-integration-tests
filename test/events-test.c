@@ -114,13 +114,24 @@ TEST(eventarray_init_tst)
 
 TEST(eventarray_add_tst)
 {
+	unsigned count = -1;
+
 	WIT_EVENTARRAY_DEFINE(tea);
 	WIT_EVENT_DEFINE(key, &wl_keyboard_interface, WL_KEYBOARD_KEY);
 
-	wit_eventarray_add(tea, key, 0, 0, 0, 0);
+	count = wit_eventarray_add(tea, key, 0, 0, 0, 0);
 	assertf(tea->count == 1, "Count not increased");
+	assertf(tea->count == count, "Count returned wrong count");
 	assertf(tea->index == 0, "Index should have not been increased");
 	assertf(tea->events[0] != NULL, "Event not saved");
+	assertf(tea->events[1] == NULL, "Wrong memory state");
+
+	count = wit_eventarray_add(tea, key, 1, 1, 1, 1);
+	assertf(tea->count == 2, "Count not increased");
+	assertf(tea->count == count, "Count returned wrong count");
+	assertf(tea->index == 0, "Index should have not been increased");
+	assertf(tea->events[1] != NULL, "Event not saved");
+	assertf(tea->events[2] == NULL, "Wrong memory state");
 
 	wit_eventarray_free(tea);
 }
