@@ -9,6 +9,7 @@ struct wit_client {
 	struct wl_display *display;
 	struct wl_registry *registry;
 
+	struct wl_compositor *compositor;
 	struct wl_seat *seat;
 	struct wl_pointer *pointer;
 	struct wl_keyboard *keyboard;

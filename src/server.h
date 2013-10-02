@@ -17,14 +17,17 @@ struct wit_display {
 
 	struct {
 		struct wl_global *seat;
+		struct wl_global *compositor;
 		struct wl_global *global; /* one for user's arbitrary use */
 	} globals;
 
 	struct {
+		struct wl_resource *compositor;
 		struct wl_resource *seat;
 		struct wl_resource *pointer;
 		struct wl_resource *keyboard;
 		struct wl_resource *touch;
+		struct wl_resource *surface;
 	} resources;
 
 	int client_sock[2];
