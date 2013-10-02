@@ -28,22 +28,6 @@
 #include "test-runner.h"
 #include "wit.h"
 
-
-/*
-#
-void
-wit_eventarray_add(struct wit_eventarray *ea, struct wit_event *event, ...);
-
-int
-wit_eventarray_emit_one(struct wit_display *d, struct wit_eventarray *ea);
-
-int
-wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b);
-
-void
-wit_eventarray_free(struct wit_eventarray *ea);
-*/
-
 TEST(define_event_tst)
 {
 	WIT_EVENT_DEFINE(pointer_motion, &wl_pointer_interface, WL_POINTER_MOTION);
@@ -112,6 +96,18 @@ TEST(eventarray_init_tst)
 	assertf(tea->index == 0, "Index not initialized");
 }
 
+FAIL_TEST(eventarray_add_wrong_event_tst)
+{
+	WIT_EVENTARRAY_DEFINE(tea);
+	wit_eventarray_add(tea, NULL);
+}
+
+FAIL_TEST(eventarray_add_wrong_ea_tst)
+{
+	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_MOTION);
+	wit_eventarray_add(NULL, e);
+}
+
 TEST(eventarray_add_tst)
 {
 	unsigned count = -1;
@@ -134,4 +130,93 @@ TEST(eventarray_add_tst)
 	assertf(tea->events[2] == NULL, "Wrong memory state");
 
 	wit_eventarray_free(tea);
+}
+
+
+/* just define some events, no matter what events and do it manually, so it can
+ * is global */
+struct wit_event touch_e = {&wl_touch_interface, WL_TOUCH_FRAME};
+struct wit_event pointer_e = {&wl_pointer_interface, WL_POINTER_BUTTON};
+struct wit_event keyboard_e = {&wl_keyboard_interface, WL_KEYBOARD_KEY};
+struct wit_event seat_e = {&wl_seat_interface, WL_SEAT_NAME};
+
+static int
+eventarray_emit_main(int sock)
+{
+	struct wit_client *c = wit_client_populate(sock);
+
+	wit_client_ask_for_events(c, 0);
+
+	wit_client_free(c);
+	return EXIT_SUCCESS;
+}
+
+TEST(eventarray_emit_tst)
+{
+	WIT_EVENTARRAY_DEFINE(tea);
+
+	struct wit_display *d = wit_display_create(NULL);
+	wit_display_create_client(d, eventarray_emit_main);
+	wit_display_add_events(d, tea);
+
+	wit_eventarray_add(tea, &touch_e);
+	wit_eventarray_add(tea, &pointer_e, 0, 0, 0, 0);
+	wit_eventarray_add(tea, &keyboard_e, 0, 0, 0, 0);
+	wit_eventarray_add(tea, &seat_e, "Cool name");
+
+	assert(tea->count == 4 && tea->index == 0);
+
+	assert(wit_display_run(d) == EXIT_SUCCESS);
+
+	assert(tea->count == 4);
+	assertf(tea->index == 4, "Index is set wrong");
+
+	/* how many resources we tested?
+	 * it's just for me.. */
+	int resources_tst = tea->count;
+	int resources_no = sizeof(d->resources) / sizeof(struct wl_resource *);
+
+	assertf(resources_tst == resources_no, "Missing tests for new resources");
+
+
+	wit_eventarray_free(tea);
+	wit_display_destroy(d);
+}
+
+TEST(eventarray_compare_tst)
+{
+	WIT_EVENTARRAY_DEFINE(e1);
+	WIT_EVENTARRAY_DEFINE(e2);
+	WIT_EVENT_DEFINE(pointer_motion, &wl_pointer_interface, WL_POINTER_MOTION);
+	WIT_EVENT_DEFINE(seat_caps, &wl_seat_interface, WL_SEAT_CAPABILITIES);
+
+	assertf(wit_eventarray_compare(e1, e1) == 0,
+		"The same eventarrays are not equal");
+	assertf(wit_eventarray_compare(e1, e2) == 0
+		&& wit_eventarray_compare(e2, e1) == 0,
+		"Empty eventarrays are not equal");
+
+	wit_eventarray_add(e1, pointer_motion, 1, 2, 3, 4);
+	wit_eventarray_add(e2, pointer_motion, 1, 2, 3, 4);
+	assertf(wit_eventarray_compare(e1, e2) == 0);
+
+	wit_eventarray_add(e1, seat_caps, 4);
+	assertf(wit_eventarray_compare(e1, e2) != 0);
+	assertf(wit_eventarray_compare(e2, e1) != 0);
+
+	wit_eventarray_add(e2, seat_caps, 4);
+	assertf(wit_eventarray_compare(e2, e1) == 0);
+	assertf(wit_eventarray_compare(e1, e2) == 0);
+
+	wit_eventarray_add(e2, pointer_motion,  0, 0, 0);
+	assertf(wit_eventarray_compare(e1, e2) != 0);
+
+	wit_eventarray_add(e1, pointer_motion,  0, 0, 0);
+	assertf(wit_eventarray_compare(e1, e2) == 0);
+
+	assertf(wit_eventarray_compare(e1, e1) == 0);
+	assertf(wit_eventarray_compare(e2, e2) == 0);
+
+	wit_eventarray_free(e1);
+	wit_eventarray_free(e2);
 }
