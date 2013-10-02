@@ -200,3 +200,86 @@ TEST(client_populate_tst)
 
 	exit(stat);
 }
+
+static const struct wl_pointer_listener *dummy_pointer_listener = (void *) 0xBED;
+static const struct wl_keyboard_listener *dummy_keyboard_listener = (void *) 0xB00;
+static const struct wl_touch_listener *dummy_touch_listener = (void *) 0xBEAF;
+
+static int
+add_listener_main(int sock)
+{
+	/*
+	printf("%d\n", getpid());
+	getchar();
+	*/
+
+	int listeners_tested = 5;
+	int listeners_no;
+
+	struct wit_client *c = wit_client_populate(sock);
+
+	dbg("After populating\n");
+	wit_client_state(c);
+
+	assertf(c->listener.registry != NULL,
+		"In populate should have been default registry listener assigned");
+	assertf(c->listener.seat == NULL,
+		"We didn't created seat so the default seat listener shouldn't be assigned");
+
+
+	dbg("Starting adding\n");
+	wit_client_state(c);
+	wit_client_add_listener(c, "wl_pointer",
+				(void *) dummy_pointer_listener);
+	assertf(c->listener.pointer == dummy_pointer_listener,
+		"Failed adding pointer listener");
+
+	dbg("After pointer adding\n");
+	wit_client_state(c);
+
+	wit_client_add_listener(c, "wl_keyboard",
+				(void *) dummy_keyboard_listener);
+	assertf(c->listener.keyboard == dummy_keyboard_listener,
+		"Failed adding keyboard listener");
+
+	wit_client_add_listener(c, "wl_touch",
+				(void *) dummy_touch_listener);
+	assertf(c->listener.touch == dummy_touch_listener,
+		"Failed adding touch listener");
+
+	dbg("Done adding\n");
+	/* Do we have tested all? */
+	listeners_no = sizeof(c->listener) / sizeof(struct wl_listener *);
+	assertf(listeners_tested == listeners_no,
+		"Missing tests for assigning listeners");
+
+	wit_client_free(c);
+	return EXIT_SUCCESS;
+}
+
+TEST(add_listener_tst)
+{
+	/* don't create resources, otherwise we'll get SIGSEGV */
+	struct wit_config conf = {0, 0, 0};
+	struct wit_display *d = wit_display_create(&conf);
+	wit_display_create_client(d, add_listener_main);
+
+	assert(wit_display_run(d) == EXIT_SUCCESS);
+
+	wit_display_destroy(d);
+}
+
+FAIL_TEST(add_unknown_interface_listener_tst)
+{
+	struct wit_client c = {0};
+
+	/* should abort from inside the function */
+	wit_client_add_listener(&c, "wl_unknown_interface_!@#$",
+				(void *) dummy_pointer_listener);
+
+	/* only print, assert would pass the test, because this test
+	 * is expected to fail */
+	fprintf(stderr, "We should have been aborted by now...");
+
+	exit(EXIT_SUCCESS);
+}
