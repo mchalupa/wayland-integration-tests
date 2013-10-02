@@ -28,12 +28,6 @@ struct wit_client {
 	int emitting;
 };
 
-/*
-void
-wit_client_add_listener(struct wit_client *cl, const char *interface,
-			void *listener);
-*/
-
 struct wit_client *
 wit_client_populate(int sock);
 
@@ -49,4 +43,6 @@ wit_client_ask_for_events(struct wit_client *cl, int n);
 void
 wit_client_add_listener(struct wit_client *cl, const char *interface,
 			void *listener);
+void
+wit_client_state(struct wit_client *cl);
 #endif /* __WIT_CLIENT_H__ */

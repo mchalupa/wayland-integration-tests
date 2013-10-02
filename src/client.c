@@ -189,3 +189,28 @@ wit_client_ask_for_events(struct wit_client *cl, int n)
 	cl->emitting = 1;
 
 }
+
+void
+wit_client_state(struct wit_client *cl)
+{
+	assert(cl);
+
+	dbg("Client current state [%p]:\n"
+	    "        Display: %s\n"
+	    "        Emitting: %s\n"
+	    "        Proxies: %s %s %s %s %s\n"
+	    "        Listeners: %s %s %s %s %s\n",
+	    cl,
+	    cl->display ? "yes" : "no",
+	    cl->emitting ? "yes" : "no",
+	    cl->registry ? "registry" : "*",
+	    cl->seat ? "seat" : "*",
+	    cl->pointer ? "pointer" : "*",
+	    cl->keyboard ? "keyboard" : "*",
+	    cl->touch ? "touch" : "*",
+	    cl->listener.registry ? "registry" : "*",
+	    cl->listener.seat ? "seat" : "*",
+	    cl->listener.pointer ? "pointer" : "*",
+	    cl->listener.keyboard ? "keyboard" : "*",
+	    cl->listener.touch ? "touch" : "*");
+}
