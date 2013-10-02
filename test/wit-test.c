@@ -183,7 +183,22 @@ client_populate_main(int sock)
 
 TEST(client_populate_tst)
 {
+	/* since I plan adding objects, keep here last default config
+	 * and check, if default config have changed since last time.
+	 * So that I know that the tests are out of date */
+	const struct wit_config wit_old_default_config = {
+		CONF_SEAT,
+		CONF_ALL,
+		0
+	};
+
 	struct wit_display *d = wit_display_create(NULL);
+
+	assertf(wit_old_default_config.globals == d->config.globals &&
+		wit_old_default_config.resources == d->config.resources &&
+		wit_old_default_config.options == d->config.options,
+		"Config tests are out of date. Default config changed");
+
 	wit_display_create_client(d, client_populate_main);
 
 	int stat = wit_display_run(d);
@@ -195,7 +210,6 @@ TEST(client_populate_tst)
 	assert(d->resources.pointer);
 	assert(d->resources.keyboard);
 	assert(d->resources.touch);
-
 	wit_display_destroy(d);
 
 	exit(stat);
