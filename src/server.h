@@ -6,15 +6,6 @@
 #include "configuration.h"
 #include "events.h"
 
-
-/* Following macro goes through anonymous structures globals of structure wit_display */
-#define for_each_global(ptr, l)								\
-		struct wl_global **__cur_g; size_t __i_g; struct wl_global *(l);	\
-		for(__i_g = 0, __cur_g = (struct wl_global **) &(ptr), l = *(__cur_g);	\
-			__i_g < ((sizeof (ptr)) / (sizeof (struct wl_global *)));	\
-			(__cur_g)++, __i_g++, l = *(__cur_g))
-
-
 /* ===
  *  Compositor
    === */
