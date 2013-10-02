@@ -24,6 +24,10 @@ struct wit_client {
 		struct wl_touch_listener *touch;
 	} listener;
 
+	/* here we can store events if we need (no need to pass more arguments
+	 * or create global variables */
+	struct wit_eventarray *events;
+
 	/* set value 1 here, when client asked for emitting events */
 	int emitting;
 };
