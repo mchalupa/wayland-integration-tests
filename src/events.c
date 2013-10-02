@@ -43,7 +43,8 @@ wit_eventarray_add(struct wit_eventarray *ea, const struct wit_event *event, ...
 
 	/* check if event exist */
 	assert(event->interface);
-	assertf(event->opcode < event->interface->event_count, "Event opcode is illegal (%d for %s)",
+	assertf(event->opcode < (unsigned ) event->interface->event_count,
+		"Event opcode is illegal (%d for %s)",
 		event->opcode, event->interface->name);
 
 	va_list vl;
