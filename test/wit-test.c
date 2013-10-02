@@ -28,31 +28,46 @@
 
 TEST(compositor_create)
 {
-	struct wit_display *c = wit_display_create(NULL);
+	/* since I plan adding objects, keep here last default config
+	 * and check, if default config have changed since last time.
+	 * So that I know that the tests are out of date */
+	const struct wit_config wit_old_default_config = {
+		CONF_SEAT,
+		CONF_ALL,
+		0
+	};
+
+	struct wit_display *d = wit_display_create(NULL);
+
+	/* check configuration version */
+	assertf(wit_old_default_config.globals == d->config.globals &&
+		wit_old_default_config.resources == d->config.resources &&
+		wit_old_default_config.options == d->config.options,
+		"Config tests are out of date. Default config changed");
 
 	/* Following tests should be covered by asserts in code, but what if I
 	 * forget or will change something? */
-	assertf(c->display, "Display wasn't created");
-	assertf(c->client == NULL, "Client is not NULL before calling client_create");
-	assertf(c->sigchld, "Event source (SIGCHLD signal) is NULL");
-	assertf(c->sigusr1, "Event source (SIGUSR1 signal) is NULL");
-	assertf(c->loop, "Got no event loop");
-	assertf(c->client_pid == 0, "Client pid is set even though we "
+	assertf(d->display, "Display wasn't created");
+	assertf(d->client == NULL, "Client is not NULL before calling client_create");
+	assertf(d->sigchld, "Event source (SIGCHLD signal) is NULL");
+	assertf(d->sigusr1, "Event source (SIGUSR1 signal) is NULL");
+	assertf(d->loop, "Got no event loop");
+	assertf(d->client_pid == 0, "Client pid is set even though we "
 					"haven't created client yet");
-	assertf(c->client_exit_code == 0, "Client exit code differs from 0 "
+	assertf(d->client_exit_code == 0, "Client exit code differs from 0 "
 						"after initizalization");
 
-	assertf(c->data == NULL, "Client non-NULL before setting");
-	assertf(c->user_func == NULL, "User func is NULL before setting");
+	assertf(d->data == NULL, "Client non-NULL before setting");
+	assertf(d->user_func == NULL, "User func is NULL before setting");
 
 	/* check for default configs */
-	assert(c->config.globals == CONF_SEAT);
-	assert(c->config.resources == CONF_ALL);
-	assert(c->config.options == ~CONF_ALL);
+	assert(d->config.globals == CONF_SEAT);
+	assert(d->config.resources == CONF_ALL);
+	assert(d->config.options == ~CONF_ALL);
 	/* ~CONF_ALL == 0 */
 	assert(~CONF_ALL == 0); /* sanity test */
 
-	wit_display_destroy(c);
+	wit_display_destroy(d);
 	exit(EXIT_SUCCESS);
 }
 
@@ -183,22 +198,7 @@ client_populate_main(int sock)
 
 TEST(client_populate_tst)
 {
-	/* since I plan adding objects, keep here last default config
-	 * and check, if default config have changed since last time.
-	 * So that I know that the tests are out of date */
-	const struct wit_config wit_old_default_config = {
-		CONF_SEAT,
-		CONF_ALL,
-		0
-	};
-
 	struct wit_display *d = wit_display_create(NULL);
-
-	assertf(wit_old_default_config.globals == d->config.globals &&
-		wit_old_default_config.resources == d->config.resources &&
-		wit_old_default_config.options == d->config.options,
-		"Config tests are out of date. Default config changed");
-
 	wit_display_create_client(d, client_populate_main);
 
 	int stat = wit_display_run(d);
@@ -222,11 +222,6 @@ static const struct wl_touch_listener *dummy_touch_listener = (void *) 0xBEAF;
 static int
 add_listener_main(int sock)
 {
-	/*
-	printf("%d\n", getpid());
-	getchar();
-	*/
-
 	int listeners_tested = 5;
 	int listeners_no;
 
