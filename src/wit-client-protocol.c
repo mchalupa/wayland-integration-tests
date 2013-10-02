@@ -38,6 +38,8 @@ seat_handle_caps(void *data, struct wl_seat *seat, enum wl_seat_capability caps)
 	assertf(data, "No data when catched seat");
 	assertf(seat, "No seat when catched seat");
 
+	dbg("Seat handle caps\n");
+
 	struct wit_client *cl = data;
 
 	if (caps & WL_SEAT_CAPABILITY_POINTER) {
@@ -47,6 +49,9 @@ seat_handle_caps(void *data, struct wl_seat *seat, enum wl_seat_capability caps)
 		cl->pointer = wl_seat_get_pointer(seat);
 		assertf(cl->pointer,
 			"wl_seat_get_pointer returned NULL in seat_listener function");
+
+		if (cl->listener.pointer)
+			wl_pointer_add_listener(cl->pointer, cl->listener.pointer, cl);
 	}
 
 	if (caps & WL_SEAT_CAPABILITY_KEYBOARD) {
@@ -56,6 +61,9 @@ seat_handle_caps(void *data, struct wl_seat *seat, enum wl_seat_capability caps)
 		cl->keyboard = wl_seat_get_keyboard(seat);
 		assertf(cl->keyboard,
 			"Got no keyboard from seat");
+
+		if (cl->listener.keyboard)
+			wl_keyboard_add_listener(cl->keyboard, cl->listener.keyboard, cl);
 	}
 
 	if (caps & WL_SEAT_CAPABILITY_TOUCH) {
@@ -65,6 +73,9 @@ seat_handle_caps(void *data, struct wl_seat *seat, enum wl_seat_capability caps)
 		cl->touch= wl_seat_get_touch(seat);
 		assertf(cl->touch,
 			"Got no touch from seat");
+
+		if (cl->listener.touch)
+			wl_touch_add_listener(cl->touch, cl->listener.touch, cl);
 	}
 
 	/* block until synced, or client will end too early */
@@ -102,6 +113,7 @@ registry_handle_global(void *data, struct wl_registry *registry,
 		assertf(cl->seat, "Binding to registry for seat failed");
 
 		wit_client_add_listener(cl, "wl_seat", &seat_default_listener);
+		assertf(cl->listener.seat, "Failed adding listener");
 
 		wl_display_roundtrip(cl->display);
 		assertf(wl_display_get_error(cl->display) == 0,
