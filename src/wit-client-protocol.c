@@ -38,8 +38,6 @@ seat_handle_caps(void *data, struct wl_seat *seat, enum wl_seat_capability caps)
 	assertf(data, "No data when catched seat");
 	assertf(seat, "No seat when catched seat");
 
-	dbg("Seat handle caps\n");
-
 	struct wit_client *cl = data;
 
 	if (caps & WL_SEAT_CAPABILITY_POINTER) {
@@ -118,6 +116,19 @@ registry_handle_global(void *data, struct wl_registry *registry,
 		wl_display_roundtrip(cl->display);
 		assertf(wl_display_get_error(cl->display) == 0,
 			"An error in display occured");
+	} else if (strcmp(interface, "wl_compositor") == 0) {
+		cl->compositor = wl_registry_bind(registry, id,
+						  &wl_compositor_interface,
+						  version);
+		assertf(cl->compositor, "Binding to registry for compositor failed");
+
+		wl_display_roundtrip(cl->display);
+		assertf(wl_display_get_error(cl->display) == 0,
+			"An error in display occured");
+	} else if (strcmp(interface, "wl_display") == 0) {
+		// do nothing
+	} else {
+		assertf(0, "Unknown interface!");
 	}
 }
 
