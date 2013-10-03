@@ -147,21 +147,53 @@ wit_client_free(struct wit_client *c)
 	free(c);
 }
 
-void
-wit_client_call_user_func(struct wit_client *cl)
+static void
+send_display(struct wit_client *cl, enum optype op, ...)
 {
-	int stat;
+	va_list vl;
+	int stat, count;
 
 	assertf(cl, "No client's structure passed");
 
+	/* kick to display to have its attention */
 	stat = kill(getppid(), SIGUSR1);
 	assertf(stat == 0,
-		"Failed sending signal to display");
+		"Failed sending SIGUSR1 signal to display");
 
-	enum optype op = RUN_FUNC;
-	stat = write(cl->sock, &op, sizeof(op));
-	assertf(stat == sizeof(op), "Sent %d instead of %lu bytes (sendig optype)",
-		stat, sizeof(op));
+	va_start(vl, op);
+	switch(op) {
+		case RUN_FUNC:
+			stat = write(cl->sock, &op, sizeof(op));
+			assertf(stat == sizeof(op),
+				"RUN_FUNC: Sent %d instead of %lu bytes",
+				stat, sizeof(op));
+			break;
+		case EVENT_COUNT:
+			count = va_arg(vl, int);
+			assertf(count >= 0, "EVENT_COUNT: Asked for negative number of events");
+
+			stat = write(cl->sock, &op, sizeof(op));
+			assertf(stat == sizeof(op),
+				"EVENT_COUNT Sent %d instead of %lu bytes (sendig optype)",
+				stat, sizeof(op));
+
+			stat = write(cl->sock, &count, sizeof(int));
+			assertf(stat == sizeof(op),
+				"EVENT_COUNT: Sent %d instead of %lu bytes (sending count)",
+				stat, sizeof(op));
+
+			cl->emitting = 1;
+			break;
+		default:
+			assertf(0, "Unsupported or unknown type of operation (%d)", op);
+	}
+	va_end(vl);
+}
+
+inline void
+wit_client_call_user_func(struct wit_client *cl)
+{
+	send_display(cl, RUN_FUNC);
 }
 
 void
@@ -188,6 +220,10 @@ wit_client_ask_for_events(struct wit_client *cl, int n)
 
 	cl->emitting = 1;
 
+inline void
+wit_client_ask_for_events(struct wit_client *cl, int n)
+{
+	send_display(cl, n);
 }
 
 void
