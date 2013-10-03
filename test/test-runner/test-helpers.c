@@ -88,14 +88,3 @@ print_open_fds(void)
 
 	closedir(dir);
 }
-
-void
-exec_fd_leak_check(int nr_expected_fds)
-{
-	const char *exe = "./exec-fd-leak-checker";
-	char number[16] = { 0 };
-
-	snprintf(number, sizeof number - 1, "%d", nr_expected_fds);
-	execl(exe, exe, number, (char *)NULL);
-	assert(0 && "execing fd leak checker failed");
-}
