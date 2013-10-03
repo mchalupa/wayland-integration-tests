@@ -9,7 +9,9 @@
 enum optype {
 	CAN_CONTINUE = 1,	/* client can continue */
 	EVENT_COUNT,	   	/* how many events can display emit */
-	RUN_FUNC		/* run user's func */
+	EVENT_EMIT,		/* ask for single event */
+	RUN_FUNC,		/* run user's func */
+	SEND_BYTES		/* send raw bytestream to the other side */
 };
 
 #include <wayland-client-protocol.h>
