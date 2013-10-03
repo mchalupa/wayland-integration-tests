@@ -126,3 +126,60 @@ seat_bind(struct wl_client *client, void *data,
 	wl_seat_send_capabilities(d->resources.seat, cap);
 }
 
+/* -----------------------------------------------------------------------------
+ *  Compositor default implementation
+ * -------------------------------------------------------------------------- */
+static void compositor_handle_create_surface(struct wl_client *client,
+					     struct wl_resource *resource,
+					     uint32_t id)
+{
+	assert(client && resource);
+
+	struct wl_resource *res;
+	struct wit_display *d = wl_resource_get_user_data(resource);
+	assert(d);
+
+	if (!(d->config.resources & CONF_SURFACE)) {
+		dbg("Creating surface resource suppressed\n");
+		return;
+	}
+
+	res = wl_resource_create(client, &wl_surface_interface,
+				 wl_resource_get_version(resource), id);
+	assert(res);
+
+	wl_resource_set_implementation(res, NULL /* implementation */, d, NULL);
+
+	d->resources.surface = res;
+}
+
+/**
+void compositor_handle_create_region)(struct wl_client *client,
+				      struct wl_resource *resource,
+				      uint32_t id);
+ */
+
+static const struct wl_compositor_interface compositor_default_implementation = {
+	compositor_handle_create_surface,
+	NULL/* compositor_handle_create_region */
+};
+
+void
+compositor_bind(struct wl_client *client, void *data,
+		uint32_t version, uint32_t id)
+{
+	struct wit_display *d = data;
+
+	if (!(d->config.resources & CONF_COMPOSITOR)) {
+		dbg("Creating compositor resource suppressed\n");
+		return;
+	}
+
+	d->resources.compositor =
+		wl_resource_create(client,
+				   &wl_compositor_interface, version, id);
+	assertf(d->resources.compositor, "Failed creating resource for compositor");
+	wl_resource_set_implementation(d->resources.compositor,
+				       &compositor_default_implementation, data, NULL);
+}
+
