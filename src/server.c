@@ -39,7 +39,7 @@
 #include "events.h"
 
 const struct wit_config wit_default_config = {
-	CONF_SEAT,
+	CONF_SEAT | CONF_COMPOSITOR,
 	CONF_ALL,
 	0
 };
