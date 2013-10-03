@@ -424,9 +424,9 @@ wit_display_add_events(struct wit_display *d, struct wit_eventarray *e)
  * Wayland bindings
  */
 
- /* definitions can be found in wit-server-protocol.c */
-extern const struct wl_seat_interface seat_default_implementation;
+/* definitions can be found in wit-server-protocol.c */
 void seat_bind(struct wl_client *, void *, uint32_t, uint32_t);
+void compositor_bind(struct wl_client *, void *, uint32_t, uint32_t);
 
 static void
 display_create_globals(struct wit_display *d)
@@ -443,4 +443,13 @@ display_create_globals(struct wit_display *d)
 					 d, seat_bind);
 		assertf(d->globals.seat, "Failed creating global for seat");
 	}
+
+	if (d->config.globals & CONF_COMPOSITOR) {
+		d->globals.compositor =
+			wl_global_create(d->display, &wl_compositor_interface,
+					 wl_compositor_interface.version,
+					 d, compositor_bind);
+		assertf(d->globals.compositor, "Failed creating global for compositor");
+	}
+
 }
