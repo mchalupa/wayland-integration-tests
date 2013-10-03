@@ -32,7 +32,7 @@ TEST(compositor_create)
 	 * and check, if default config have changed since last time.
 	 * So that I know that the tests are out of date */
 	const struct wit_config wit_old_default_config = {
-		CONF_SEAT,
+		CONF_SEAT | CONF_COMPOSITOR,
 		CONF_ALL,
 		0
 	};
@@ -61,7 +61,7 @@ TEST(compositor_create)
 	assertf(d->user_func == NULL, "User func is NULL before setting");
 
 	/* check for default configs */
-	assert(d->config.globals == CONF_SEAT);
+	assert(d->config.globals == CONF_SEAT | CONF_COMPOSITOR);
 	assert(d->config.resources == CONF_ALL);
 	assert(d->config.options == ~CONF_ALL);
 	/* ~CONF_ALL == 0 */
@@ -186,6 +186,7 @@ client_populate_main(int sock)
 	assert(c->registry);
 
 	/* we have default settings, check it */
+	assert(c->compositor);
 	assert(c->seat);
 	assert(c->pointer);
 	assert(c->keyboard);
@@ -204,8 +205,10 @@ TEST(client_populate_tst)
 	int stat = wit_display_run(d);
 
 	/* we have default settings */
+	assert(d->globals.compositor);
 	assert(d->globals.seat);
 	assert(d->globals.global == NULL);
+	assert(d->resources.compositor);
 	assert(d->resources.seat);
 	assert(d->resources.pointer);
 	assert(d->resources.keyboard);
@@ -227,24 +230,16 @@ add_listener_main(int sock)
 
 	struct wit_client *c = wit_client_populate(sock);
 
-	dbg("After populating\n");
-	wit_client_state(c);
-
 	assertf(c->listener.registry != NULL,
 		"In populate should have been default registry listener assigned");
 	assertf(c->listener.seat == NULL,
 		"We didn't created seat so the default seat listener shouldn't be assigned");
 
 
-	dbg("Starting adding\n");
-	wit_client_state(c);
 	wit_client_add_listener(c, "wl_pointer",
 				(void *) dummy_pointer_listener);
 	assertf(c->listener.pointer == dummy_pointer_listener,
 		"Failed adding pointer listener");
-
-	dbg("After pointer adding\n");
-	wit_client_state(c);
 
 	wit_client_add_listener(c, "wl_keyboard",
 				(void *) dummy_keyboard_listener);
@@ -256,7 +251,6 @@ add_listener_main(int sock)
 	assertf(c->listener.touch == dummy_touch_listener,
 		"Failed adding touch listener");
 
-	dbg("Done adding\n");
 	/* Do we have tested all? */
 	listeners_no = sizeof(c->listener) / sizeof(struct wl_listener *);
 	assertf(listeners_tested == listeners_no,
