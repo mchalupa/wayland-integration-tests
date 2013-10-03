@@ -257,6 +257,8 @@ wit_display_destroy(struct wit_display *d)
 {
 	assert(d && "Invalid pointer given to destroy_compositor");
 
+	int exit_c = d->client_exit_code;
+
 	if (d->data && d->data_destroy_func)
 		d->data_destroy_func(d->data);
 
@@ -269,6 +271,8 @@ wit_display_destroy(struct wit_display *d)
 	wl_display_destroy(d->display);
 
 	free(d);
+
+	assertf(exit_c == EXIT_SUCCESS, "Client exited with %d", exit_c);
 }
 
 int
