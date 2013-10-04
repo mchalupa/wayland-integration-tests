@@ -162,28 +162,25 @@ send_display(struct wit_client *cl, enum optype op, ...)
 
 	va_start(vl, op);
 	switch(op) {
+		case CAN_CONTINUE:
+			assertf(0, "Got CAN_CONTINUE when client is running");
 		case RUN_FUNC:
-			stat = write(cl->sock, &op, sizeof(op));
-			assertf(stat == sizeof(op),
-				"RUN_FUNC: Sent %d instead of %lu bytes",
-				stat, sizeof(op));
+			stat = asswrite(cl->sock, &op, sizeof(op));
 			break;
 		case EVENT_COUNT:
 			count = va_arg(vl, int);
 			assertf(count >= 0, "EVENT_COUNT: Asked for negative number of events");
 
-			stat = write(cl->sock, &op, sizeof(op));
-			assertf(stat == sizeof(op),
-				"EVENT_COUNT Sent %d instead of %lu bytes (sendig optype)",
-				stat, sizeof(op));
-
-			stat = write(cl->sock, &count, sizeof(int));
-			assertf(stat == sizeof(op),
-				"EVENT_COUNT: Sent %d instead of %lu bytes (sending count)",
-				stat, sizeof(op));
+			asswrite(cl->sock, &op, sizeof(op));
+			asswrite(cl->sock, &count, sizeof(int));
 
 			cl->emitting = 1;
 			break;
+		case BARRIER:
+			asswrite(cl->sock, &op, sizeof(op));
+		case EVENT_EMIT:
+		case SEND_BYTES:
+			assertf(0, "Not implemented");
 		default:
 			assertf(0, "Unsupported or unknown type of operation (%d)", op);
 	}
