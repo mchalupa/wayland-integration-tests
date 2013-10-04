@@ -48,6 +48,9 @@ struct wit_display {
 	struct wit_eventarray *events;
 
 	struct wit_config config;
+
+	/* sigusr1 sets this when action from display is required */
+	int request;
 };
 
 int
