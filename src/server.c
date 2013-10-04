@@ -180,18 +180,14 @@ wit_display_process_request(struct wit_display *disp)
 	assert(disp);
 	assertf(disp->request, "We do not have request signalized");
 
-	stat = read(disp->client_sock[1], &op, sizeof(op));
-	assertf(stat == sizeof(op),
-		"Reading pipe error, read %d byte(s) instead of %lu",
-		stat, sizeof(op));
+	assread(disp->client_sock[1], &op, sizeof(op));
 
 	switch(op) {
 		case CAN_CONTINUE:
 			assertf(0, "Got CAN_CONTINUE from child");
 			break;
 		case EVENT_COUNT:
-			stat = read(disp->client_sock[1], &count, sizeof(count));
-			assertf(stat == sizeof(count), "Reading socket error");
+			assread(disp->client_sock[1], &count, sizeof(count));
 
 			stat = emit_events(disp, count);
 			dbg("Emitted %d events (asked for %d)\n", stat, count);
@@ -331,11 +327,8 @@ run_client(int (*client_main)(int), int wayland_sock, int client_sock)
 	enum optype op = 0;
 	int can_continue = 0;
 
-	stat = read(client_sock, &op, sizeof(op));
-	stat += read(client_sock, &can_continue, sizeof(int));
-	assertf(stat == (sizeof(op) + sizeof(int)),
-		"Reading pipe error, read %d byte(s) instead of %lu",
-		stat, sizeof(op) + sizeof(int));
+	assread(client_sock, &op, sizeof(op));
+	assread(client_sock, &can_continue, sizeof(int));
 
 	assertf(op == CAN_CONTINUE,
 		"Got request for another operation (%u) than CAN_CONTINUE (%d)",
@@ -381,12 +374,10 @@ wit_display_create_client(struct wit_display *disp,
 		close(disp->client_sock[1]);
 
 		/* just test if connection is established */
-		stat = read(disp->client_sock[0], &test, sizeof(int));
-		assertf(stat == sizeof(int), "Connection reading error");
+		assread(disp->client_sock[0], &test, sizeof(int));
 		assertf(test == 0xbeef, "Connection error");
 		test = 0xdaf;
-		stat = write(disp->client_sock[0], &test, sizeof(int));
-		assertf(stat == sizeof(int), "Connection writing error");
+		asswrite(disp->client_sock[0], &test, sizeof(int));
 
 		/* abort() itself doesn't imply failing test when it's forked,
 		 * we need call exit after abort() */
@@ -406,10 +397,8 @@ wit_display_create_client(struct wit_display *disp,
 
 		/* just test if connection is established */
 		test = 0xbeef;
-		stat = write(disp->client_sock[1], &test, sizeof(int));
-		assertf(stat == sizeof(int), "Connection writing error");
-		stat = read(disp->client_sock[1], &test, sizeof(int));
-		assertf(stat == sizeof(int), "Connection reading error");
+		asswrite(disp->client_sock[1], &test, sizeof(int));
+		assread(disp->client_sock[1], &test, sizeof(int));
 		assertf(test == 0xdaf, "Connection error");
 
 		disp->client = wl_client_create(disp->display, sockv[1]);
