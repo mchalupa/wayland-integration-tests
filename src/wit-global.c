@@ -35,4 +35,12 @@ asswrite(int fd, void *src, size_t size)
 	return stat;
 }
 
+int
+assread(int fd, void *dest, size_t size)
+{
+	int stat = read(fd, dest, size);
+	assertf(stat == size,
+		"Recieved %d instead of %lu bytes", stat, size);
 
+	return stat;
+}

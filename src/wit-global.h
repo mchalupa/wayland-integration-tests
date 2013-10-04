@@ -33,4 +33,7 @@ const struct wl_registry_listener registry_default_listener;
 /* write with assert check */
 int
 asswrite(int fd, void *src, size_t size);
+
+int
+assread(int fd, void *dest, size_t size);
 #endif  /* __WIT_UTIL_H__ */
