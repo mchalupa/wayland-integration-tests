@@ -20,10 +20,17 @@ enum optype {
 	RUN_FUNC,		/* run user's func */
 
 	/* arguments: size_t size, void *mem */
-	SEND_BYTES		/* send raw bytestream to the other side */
+	SEND_BYTES,		/* send raw bytestream to the other side */
+
+	/* arguments: none */
+	BARRIER,		/* sync client with display */
 };
 
 #include <wayland-client-protocol.h>
 const struct wl_registry_listener registry_default_listener;
 
+
+/* write with assert check */
+int
+asswrite(int fd, void *src, size_t size);
 #endif  /* __WIT_UTIL_H__ */
