@@ -1,14 +1,20 @@
 lib_LIBRARIES = libwit-server.a libwit-client.a
+lib_LTLIBRARIES = libwit-global.la
 
+
+libwit_server_a_LIBADD = libwit-global.la
 libwit_server_a_SOURCES =	\
 	wit-server-protocol.c 	\
 	server.c		\
 	events.c
 
+libwit_client_a_LIBADD = libwit-global.la
 libwit_client_a_SOURCES =	\
 	wit-client-protocol.c	\
 	client.c
 
+libwit_global_la_SOURCES =	\
+	wit-global.c
 AM_CFLAGS = $(COMPILER_CFLAGS) $(WAYLAND_SERVER_CFLAGS) $(WAYLAND_CLIENT_CFLAGS)
 
 debug:
