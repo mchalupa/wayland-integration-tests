@@ -44,3 +44,45 @@ assread(int fd, void *dest, size_t size)
 
 	return stat;
 }
+
+/* Send messages to counterpart */
+void
+send_message(int fd, enum optype op, ...)
+{
+	va_list vl;
+	int stat, cont, count;
+
+	/* enum optype is defined from 1 */
+	assertf(op > 0, "Wrong operation");
+	assertf(fd >= 0, "Wrong filedescriptor");
+
+	va_start(vl, op);
+
+	switch (op) {
+		case CAN_CONTINUE:
+			cont = va_arg(vl, int);
+
+			asswrite(fd, &op, sizeof(op));
+			asswrite(fd, &cont, sizeof(int));
+			break;
+		case RUN_FUNC:
+			asswrite(fd, &op, sizeof(op));
+			break;
+		case EVENT_COUNT:
+			count = va_arg(vl, int);
+
+			asswrite(fd, &op, sizeof(op));
+			asswrite(fd, &count, sizeof(int));
+			break;
+		case BARRIER:
+			asswrite(fd, &op, sizeof(op));
+			break;
+		case EVENT_EMIT:
+		case SEND_BYTES:
+			assertf(0, "Not implemented");
+		default:
+			assertf(0, "Unknown operation (%d)", op);
+	}
+
+	va_end(vl);
+}

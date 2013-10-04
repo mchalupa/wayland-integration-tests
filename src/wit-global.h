@@ -36,4 +36,7 @@ asswrite(int fd, void *src, size_t size);
 
 int
 assread(int fd, void *dest, size_t size);
+
+void
+send_message(int fd, enum optype op, ...);
 #endif  /* __WIT_UTIL_H__ */
