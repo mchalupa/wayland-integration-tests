@@ -322,26 +322,6 @@ wit_display_run(struct wit_display *d)
 	return d->client_exit_code;
 }
 
-void
-wit_display_barrier(struct wit_display *d)
-{
-	assert(d);
-
-	/* suppose we already got barrier message from client side */
-	send_client(d, BARRIER);
-
-	/* XXX this makes wit_display_run's return value unvaluabel,
-	 * we have to pass it another way
-	 * For example from display_destroy of create new function wit_display_conclude
-	 * or state or so */
-
-	/* display was stopped in sigusr1_handler */
-	dbg("Barrier: display synced\n");
-
-	wl_display_run(d->display);
-}
-
-
 static int
 run_client(int (*client_main)(int), int wayland_sock, int client_sock)
 {
