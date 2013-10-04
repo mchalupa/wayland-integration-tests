@@ -161,6 +161,7 @@ send_client(struct wit_display *disp, enum optype op, ...)
 			break;
 		case BARRIER:
 			asswrite(fd, &op, sizeof(op));
+			break;
 		case EVENT_EMIT:
 		case SEND_BYTES:
 			assertf(0, "Not implemented");

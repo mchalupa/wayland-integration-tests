@@ -178,6 +178,7 @@ send_display(struct wit_client *cl, enum optype op, ...)
 			break;
 		case BARRIER:
 			asswrite(cl->sock, &op, sizeof(op));
+			break;
 		case EVENT_EMIT:
 		case SEND_BYTES:
 			assertf(0, "Not implemented");
