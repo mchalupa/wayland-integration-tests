@@ -60,6 +60,8 @@ TEST(compositor_create)
 	assertf(d->data == NULL, "Client non-NULL before setting");
 	assertf(d->user_func == NULL, "User func is NULL before setting");
 
+	assert(d->request == 0);
+
 	/* check for default configs */
 	assert(d->config.globals == CONF_SEAT | CONF_COMPOSITOR);
 	assert(d->config.resources == CONF_ALL);
@@ -80,19 +82,25 @@ client_main(int s)
 
 TEST(client_create)
 {
-	struct wit_display *c = wit_display_create(NULL);
+	struct wit_display *d = wit_display_create(NULL);
 	int stat;
 
-	wit_display_create_client(c, client_main);
+	wit_display_create_client(d, client_main);
 
-	assertf(c->client, "Client is NULL");
-	assertf(c->client_pid != 0, "Client pid is weird (%d)..", c->client_pid);
+	assertf(d->client, "Client is NULL");
+	assertf(d->client_pid != 0, "Client pid is weird (%d)..", d->client_pid);
 
-	stat = wit_display_run(c);
+	stat = wit_display_run(d);
 	assertf(stat == 42, "The value returned in client_main doesn't mach the"
 				" value returned by wit_display_run (%d != 42)", stat);
 
-	wit_display_destroy(c);
+	/* nobody requested anything */
+	assert(d->request == 0);
+
+	/* display checks for 0 */
+	d->client_exit_code = 0;
+
+	wit_display_destroy(d);
 	exit(EXIT_SUCCESS);
 }
 
@@ -154,11 +162,13 @@ TEST(user_func_tst)
 	wit_display_add_user_func(d, user_func, (void *) 0xdeadbee);
 
 	stat = wit_display_run(d);
+
+	/* process user func */
+	wit_display_process_request(d);
+
 	assertf(user_func_called, "User function wasn't called");
 
 	wit_display_destroy(d);
-	exit(stat);
-
 }
 
 TEST(config_tst)
