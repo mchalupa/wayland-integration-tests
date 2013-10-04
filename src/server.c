@@ -132,43 +132,12 @@ handle_sigusr1(int signum, void *data)
 static void
 send_client(struct wit_display *disp, enum optype op, ...)
 {
-	va_list vl;
-	int stat, cont, count;
-
-	/* enum optype is defined from 1 */
-	assertf(op > 0, "Wrong operation");
 	assertf(disp, "No compositor passed");
 
-	int fd = disp->client_sock[1];
+	va_list vl;
 
 	va_start(vl, op);
-
-	switch (op) {
-		case CAN_CONTINUE:
-			cont = va_arg(vl, int);
-
-			asswrite(fd, &op, sizeof(op));
-			asswrite(fd, &cont, sizeof(int));
-			break;
-		case RUN_FUNC:
-			asswrite(fd, &op, sizeof(op));
-			break;
-		case EVENT_COUNT:
-			count = va_arg(vl, int);
-
-			asswrite(fd, &op, sizeof(op));
-			asswrite(fd, &count, sizeof(int));
-			break;
-		case BARRIER:
-			asswrite(fd, &op, sizeof(op));
-			break;
-		case EVENT_EMIT:
-		case SEND_BYTES:
-			assertf(0, "Not implemented");
-		default:
-			assertf(0, "Unknown operation (%d)", op);
-	}
-
+	send_message(disp->client_sock[1], op, vl);
 	va_end(vl);
 }
 
