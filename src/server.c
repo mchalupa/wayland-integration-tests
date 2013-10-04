@@ -132,9 +132,8 @@ handle_sigusr1(int signum, void *data)
 static void
 send_client(struct wit_display *disp, enum optype op, ...)
 {
-	int stat;
 	va_list vl;
-	int cont;
+	int stat, cont, count;
 
 	/* enum optype is defined from 1 */
 	assertf(op > 0, "Wrong operation");
@@ -147,15 +146,26 @@ send_client(struct wit_display *disp, enum optype op, ...)
 	switch (op) {
 		case CAN_CONTINUE:
 			cont = va_arg(vl, int);
-			stat = write(fd, &op, sizeof(op));
-			stat += write(fd, &cont, sizeof(int));
-			assertf(stat == (sizeof(op) + sizeof(int)),
-				"Failed signal client. Supposed to "
-				"send %lu byte(s), but sent %d byte(s)",
-				sizeof(op) + sizeof(int), stat);
+
+			asswrite(fd, &op, sizeof(op));
+			asswrite(fd, &cont, sizeof(int));
 			break;
+		case RUN_FUNC:
+			asswrite(fd, &op, sizeof(op));
+			break;
+		case EVENT_COUNT:
+			count = va_arg(vl, int);
+
+			asswrite(fd, &op, sizeof(op));
+			asswrite(fd, &count, sizeof(int));
+			break;
+		case BARRIER:
+			asswrite(fd, &op, sizeof(op));
+		case EVENT_EMIT:
+		case SEND_BYTES:
+			assertf(0, "Not implemented");
 		default:
-			assertf(0, "Unknown operation");
+			assertf(0, "Unknown operation (%d)", op);
 	}
 
 	va_end(vl);
@@ -163,7 +173,7 @@ send_client(struct wit_display *disp, enum optype op, ...)
 
 void
 wit_display_process_request(struct wit_display *disp)
-{	
+{
 	int stat, count;
 	enum optype op;
 	assert(disp);
@@ -310,6 +320,25 @@ wit_display_run(struct wit_display *d)
 	wl_display_run(d->display);
 
 	return d->client_exit_code;
+}
+
+void
+wit_display_barrier(struct wit_display *d)
+{
+	assert(d);
+
+	/* suppose we already got barrier message from client side */
+	send_client(d, BARRIER);
+
+	/* XXX this makes wit_display_run's return value unvaluabel,
+	 * we have to pass it another way
+	 * For example from display_destroy of create new function wit_display_conclude
+	 * or state or so */
+
+	/* display was stopped in sigusr1_handler */
+	dbg("Barrier: display synced\n");
+
+	wl_display_run(d->display);
 }
 
 
