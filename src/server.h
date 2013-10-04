@@ -81,4 +81,10 @@ wit_display_add_user_func(struct wit_display *d,
 
 void
 wit_display_add_events(struct wit_display *d, struct wit_eventarray *e);
+
+/**
+ * Process request from client
+ */
+void
+wit_display_process_request(struct wit_display *d);
 #endif /* __WIT_SERVER_H__ */
