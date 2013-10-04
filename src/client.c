@@ -187,40 +187,62 @@ send_display(struct wit_client *cl, enum optype op, ...)
 	va_end(vl);
 }
 
-inline void
+void
 wit_client_call_user_func(struct wit_client *cl)
 {
+	int stat;
+	enum optype op;
+
+	dbg("Request for user func\n");
+
 	send_display(cl, RUN_FUNC);
+	stat = read(cl->sock, &op, sizeof(op));
+	assertf(stat == sizeof(op),
+		"Recieved wrong number of bytes (%d)", stat);
+	assertf(op == RUN_FUNC, "Got bad acknowledge (%d instead of %d)", op,
+		RUN_FUNC);
+
+	dbg("run_func got ackn\n");
 }
 
-void
+int
 wit_client_ask_for_events(struct wit_client *cl, int n)
+{
+	int stat, count;
+	enum optype op;
+
+	dbg("Request for events\n");
+
+	send_display(cl, EVENT_COUNT, n);
+
+	stat = read(cl->sock, &op, sizeof(op));
+	assertf(stat == sizeof(op),
+		"Recieved wrong number of bytes (%d)", stat);
+	assertf(op == EVENT_COUNT, "Got bad acknowledge (%d instead of %d)", op,
+		EVENT_COUNT);
+
+	stat = read(cl->sock, &count, sizeof(count));
+	assertf(stat == sizeof(count),
+		"Recieved wrong number of bytes (%d)", stat);
+
+	dbg("events got ackn\n");
+	return count;
+}
+
+
+void
+wit_client_barrier(struct wit_client *cl)
 {
 	int stat;
+	enum optype op;
 
-	assertf(cl, "No client's structure passed");
-	assertf(n >= 0, "Asked for negative number of events");
-
-	/* kick to display to have its attention */
-	stat = kill(getppid(), SIGUSR1);
-	assertf(stat == 0,
-		"Failed sending signal to start emitting events");
-
-	enum optype op = EVENT_COUNT;
-	stat = write(cl->sock, &op, sizeof(op));
-	assertf(stat == sizeof(op), "Sent %d instead of %lu bytes (sendig optype)",
+	send_display(cl, BARRIER);
+	/* wait for display's barrier call */
+	stat = read(cl->sock, &op, sizeof(op));
+	assertf(stat == sizeof(op), "Recieved %d instead of %lu bytes (barrier)",
 		stat, sizeof(op));
 
-	stat = write(cl->sock, &n, sizeof(int));
-	assertf(stat == sizeof(op), "Sent %d instead of %lu bytes (sending count)",
-		stat, sizeof(op));
-
-	cl->emitting = 1;
-
-inline void
-wit_client_ask_for_events(struct wit_client *cl, int n)
-{
-	send_display(cl, n);
+	dbg("Barrier: client synced\n");
 }
 
 void
