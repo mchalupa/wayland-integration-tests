@@ -19,6 +19,7 @@ AM_CFLAGS = $(COMPILER_CFLAGS) $(TESTS_CFLAGS)# -ldl
 
 LDADD = $(top_builddir)/src/libwit-server.a \
 	$(top_builddir)/src/libwit-client.a \
+	$(top_builddir)/src/libwit-global.la \
 	$(test_runner_dir)/lib-test-runner.la
 	$(TESTS_LIBS) -ldl
 
