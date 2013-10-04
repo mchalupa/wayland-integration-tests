@@ -110,41 +110,20 @@ emit_events(struct wit_display *d, int n)
 	return i;
 }
 
-
-/* When display gets this signal it reads from socket what client want */
 static int
 handle_sigusr1(int signum, void *data)
 {
-	int stat, count;
-	enum optype op;
+
 	struct wit_display *disp = data;
 
 	assertf(signum == SIGUSR1,
 		"Expected signal %d (SIGUSR1) but got %d", SIGUSR1, signum);
 	assertf(data, "Got SIGUSR1 with NULL data\n");
 
-	stat = read(disp->client_sock[1], &op, sizeof(op));
-	assertf(stat == sizeof(op),
-		"Reading pipe error, read %d byte(s) instead of %lu",
-		stat, sizeof(op));
+	disp->request = 1;
 
-	switch(op) {
-		case CAN_CONTINUE:
-			assertf(0, "Got CAN_CONTINUE from child");
-		case EVENT_COUNT:
-			stat = read(disp->client_sock[1], &count, sizeof(count));
-			assertf(stat == sizeof(count), "Reading socket error");
-
-			stat = emit_events(disp, count);
-			dbg("Emitted %d events (asked for %d)\n", stat, count);
-			break;
-		case RUN_FUNC:
-			dbg("Running user's function\n");
-			disp->user_func(disp->user_func_data);
-			break;
-		default:
-			assertf(0, "Unknown operation");
-	}
+	/* terminate display, so that we can process request */
+	wl_display_terminate(disp->display);
 
 	return 0;
 }
@@ -182,6 +161,53 @@ send_client(struct wit_display *disp, enum optype op, ...)
 	va_end(vl);
 }
 
+void
+wit_display_process_request(struct wit_display *disp)
+{	
+	int stat, count;
+	enum optype op;
+	assert(disp);
+	assertf(disp->request, "We do not have request signalized");
+
+	stat = read(disp->client_sock[1], &op, sizeof(op));
+	assertf(stat == sizeof(op),
+		"Reading pipe error, read %d byte(s) instead of %lu",
+		stat, sizeof(op));
+
+	switch(op) {
+		case CAN_CONTINUE:
+			assertf(0, "Got CAN_CONTINUE from child");
+			break;
+		case EVENT_COUNT:
+			stat = read(disp->client_sock[1], &count, sizeof(count));
+			assertf(stat == sizeof(count), "Reading socket error");
+
+			stat = emit_events(disp, count);
+			dbg("Emitted %d events (asked for %d)\n", stat, count);
+
+			/* acknowledge */
+			send_client(disp, EVENT_COUNT, stat);
+			break;
+		case RUN_FUNC:
+			dbg("Running user's function\n");
+			disp->user_func(disp->user_func_data);
+
+			/* acknowledge */
+			send_client(disp, RUN_FUNC);
+			break;
+		case BARRIER:
+			dbg("Syncing display\n");
+			send_client(disp, BARRIER);
+			break;
+		default:
+			assertf(0, "Unknown operation");
+	}
+
+	disp->request = 0;
+
+	/* continue in wayland's loop */
+	wl_display_run(disp->display);
+}
 /* Since tests can run parallely, we need unique socket names
  * for each test. Otherwise test can fail on wl_display_add_socket.
  * Also test would fail on this function when some other test failed and socket
