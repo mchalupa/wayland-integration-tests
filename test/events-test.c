@@ -144,8 +144,13 @@ static int
 eventarray_emit_main(int sock)
 {
 	struct wit_client *c = wit_client_populate(sock);
+	struct wl_surface *surface
+			= wl_compositor_create_surface(c->compositor);
+	wl_display_roundtrip(c->display);
 
 	wit_client_ask_for_events(c, 0);
+
+	wl_display_roundtrip(c->display);
 
 	wit_client_free(c);
 	return EXIT_SUCCESS;
@@ -159,6 +164,8 @@ TEST(eventarray_emit_tst)
 	wit_display_create_client(d, eventarray_emit_main);
 	wit_display_add_events(d, tea);
 
+	wit_display_run(d);
+
 	wit_eventarray_add(tea, &touch_e);
 	wit_eventarray_add(tea, &pointer_e, 0, 0, 0, 0);
 	wit_eventarray_add(tea, &keyboard_e, 0, 0, 0, 0);
@@ -166,14 +173,15 @@ TEST(eventarray_emit_tst)
 
 	assert(tea->count == 4 && tea->index == 0);
 
-	assert(wit_display_run(d) == EXIT_SUCCESS);
+	/* process request for events */
+	wit_display_process_request(d);
 
 	assert(tea->count == 4);
-	assertf(tea->index == 4, "Index is set wrong");
+	assertf(tea->index == 4, "Index is set wrong (%d)", tea->index);
 
 	/* how many resources we tested?
 	 * it's just for me.. */
-	int resources_tst = tea->count;
+	int resources_tst = tea->count + 1; /* +1 = compositor doesn't have events */
 	int resources_no = sizeof(d->resources) / sizeof(struct wl_resource *);
 
 	assertf(resources_tst == resources_no, "Missing tests for new resources");
