@@ -197,9 +197,7 @@ wit_client_call_user_func(struct wit_client *cl)
 	dbg("Request for user func\n");
 
 	send_display(cl, RUN_FUNC);
-	stat = read(cl->sock, &op, sizeof(op));
-	assertf(stat == sizeof(op),
-		"Recieved wrong number of bytes (%d)", stat);
+	assread(cl->sock, &op, sizeof(op));
 	assertf(op == RUN_FUNC, "Got bad acknowledge (%d instead of %d)", op,
 		RUN_FUNC);
 
@@ -216,17 +214,12 @@ wit_client_ask_for_events(struct wit_client *cl, int n)
 
 	send_display(cl, EVENT_COUNT, n);
 
-	stat = read(cl->sock, &op, sizeof(op));
-	assertf(stat == sizeof(op),
-		"Recieved wrong number of bytes (%d)", stat);
+	assread(cl->sock, &op, sizeof(op));
 	assertf(op == EVENT_COUNT, "Got bad acknowledge (%d instead of %d)", op,
 		EVENT_COUNT);
 
-	stat = read(cl->sock, &count, sizeof(count));
-	assertf(stat == sizeof(count),
-		"Recieved wrong number of bytes (%d)", stat);
+	assread(cl->sock, &count, sizeof(count));
 
-	dbg("events got ackn\n");
 	return count;
 }
 
@@ -238,10 +231,9 @@ wit_client_barrier(struct wit_client *cl)
 	enum optype op;
 
 	send_display(cl, BARRIER);
+
 	/* wait for display's barrier call */
-	stat = read(cl->sock, &op, sizeof(op));
-	assertf(stat == sizeof(op), "Recieved %d instead of %lu bytes (barrier)",
-		stat, sizeof(op));
+	assread(cl->sock, &op, sizeof(op));
 
 	dbg("Barrier: client synced\n");
 }
