@@ -42,7 +42,7 @@ wit_client_free(struct wit_client *c);
 void
 wit_client_call_user_func(struct wit_client *cl);
 
-void
+int
 wit_client_ask_for_events(struct wit_client *cl, int n);
 
 void
@@ -50,4 +50,7 @@ wit_client_add_listener(struct wit_client *cl, const char *interface,
 			void *listener);
 void
 wit_client_state(struct wit_client *cl);
+
+void
+wit_client_barrier(struct wit_client *cl);
 #endif /* __WIT_CLIENT_H__ */
