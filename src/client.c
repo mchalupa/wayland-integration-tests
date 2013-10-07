@@ -133,17 +133,18 @@ wit_client_free(struct wit_client *c)
 
 	wl_registry_destroy(c->registry);
 
-	if(c->seat)
+	if (c->compositor)
+		wl_compositor_destroy(c->compositor);
+	if (c->seat)
 		wl_seat_destroy(c->seat);
-	if(c->pointer)
+	if (c->pointer)
 		wl_pointer_destroy(c->pointer);
-	if(c->keyboard)
+	if (c->keyboard)
 		wl_keyboard_destroy(c->keyboard);
-	if(c->touch)
+	if (c->touch)
 		wl_touch_destroy(c->touch);
 
 	wl_display_disconnect(c->display);
-
 	close(c->sock);
 
 	free(c);
