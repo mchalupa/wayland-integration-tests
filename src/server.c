@@ -133,6 +133,8 @@ wit_display_process_request(struct wit_display *disp)
 {
 	int stat, count, fd;
 	enum optype op;
+	size_t size;
+
 	assert(disp);
 	assertf(disp->request, "We do not have request signalized");
 
@@ -164,6 +166,25 @@ wit_display_process_request(struct wit_display *disp)
 			dbg("Syncing display\n");
 			send_message(fd, BARRIER);
 			break;
+		case SEND_BYTES:
+			if (disp->data) {
+				dbg("SEND_BYTES: Overwritting user data");
+				if (disp->data_destroy_func)
+					disp->data_destroy_func(disp->data);
+			}
+
+			assread(fd, &size, sizeof(size_t));
+
+			disp->data = malloc(size);
+			assert(disp->data && "Out of memory");
+
+			assread(fd, disp->data, size);
+			disp->data_destroy_func = &free;
+
+			/* acknowledge */
+			asswrite(fd, &op, sizeof(op));
+			asswrite(fd, &size, sizeof(size_t));
+			break;
 		default:
 			assertf(0, "Unknown operation");
 	}
@@ -173,6 +194,13 @@ wit_display_process_request(struct wit_display *disp)
 	/* continue in wayland's loop */
 	wl_display_run(disp->display);
 }
+
+inline void
+wit_display_send_data(struct wit_display *d, void *src, size_t size)
+{
+	send_message(d->client_sock[1], size, src);
+}
+
 /* Since tests can run parallely, we need unique socket names
  * for each test. Otherwise test can fail on wl_display_add_socket.
  * Also test would fail on this function when some other test failed and socket

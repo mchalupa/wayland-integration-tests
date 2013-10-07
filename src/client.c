@@ -206,6 +206,26 @@ wit_client_call_user_func(struct wit_client *cl)
 	dbg("run_func got ackn\n");
 }
 
+void
+wit_client_send_data(struct wit_client *cl, void *src, size_t size)
+{
+	enum optype op;
+	size_t got_size;
+
+	dbg("Sending data to display\n");
+
+	kick_display();
+	send_message(cl->sock, SEND_BYTES, src, size);
+
+	assread(cl->sock, &op, sizeof(op));
+	assertf(op == SEND_BYTES, "Got bad acknowledge (%d instead of %d)", op,
+		SEND_BYTES);
+
+	assread(cl->sock, &got_size, sizeof(size_t));
+	assertf(got_size == size, "Display replied that it got different number of bytes"
+		" (%lu and %lu)", size, got_size);
+}
+
 int
 wit_client_ask_for_events(struct wit_client *cl, int n)
 {

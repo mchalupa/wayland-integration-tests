@@ -51,6 +51,9 @@ int
 wit_client_ask_for_events(struct wit_client *cl, int n);
 
 void
+wit_client_send_data(struct wit_client *cl, void *src, size_t size);
+
+void
 wit_client_add_listener(struct wit_client *cl, const char *interface,
 			const void *listener);
 void
