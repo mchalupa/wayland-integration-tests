@@ -106,6 +106,9 @@ registry_handle_global(void *data, struct wl_registry *registry,
 {
 	struct wit_client *cl = data;
 	if (strcmp(interface, "wl_seat") == 0) {
+		if (cl->seat)
+			wl_seat_destroy(cl->seat);
+
 		cl->seat = wl_registry_bind(registry, id, &wl_seat_interface,
 					    version);
 		assertf(cl->seat, "Binding to registry for seat failed");
@@ -117,6 +120,9 @@ registry_handle_global(void *data, struct wl_registry *registry,
 		assertf(wl_display_get_error(cl->display) == 0,
 			"An error in display occured");
 	} else if (strcmp(interface, "wl_compositor") == 0) {
+		if (cl->compositor)
+			wl_compositor_destroy(cl->compositor);
+
 		cl->compositor = wl_registry_bind(registry, id,
 						  &wl_compositor_interface,
 						  version);
