@@ -290,6 +290,8 @@ run_client(int (*client_main)(int), int wayland_sock, int client_sock)
 	assertf(op == CAN_CONTINUE,
 		"Got request for another operation (%u) than CAN_CONTINUE (%d)",
 		op, CAN_CONTINUE);
+	assertf(can_continue == 0 || can_continue == 1,
+		"CAN_CONTINUE can be either 0 or 1");
 
 	if (can_continue == 0)
 		return EXIT_FAILURE;
