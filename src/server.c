@@ -128,52 +128,41 @@ handle_sigusr1(int signum, void *data)
 	return 0;
 }
 
-/* Send messages to client */
-static void
-send_client(struct wit_display *disp, enum optype op, ...)
-{
-	assertf(disp, "No compositor passed");
-
-	va_list vl;
-
-	va_start(vl, op);
-	send_message(disp->client_sock[1], op, vl);
-	va_end(vl);
-}
-
 void
 wit_display_process_request(struct wit_display *disp)
 {
-	int stat, count;
+	int stat, count, fd;
 	enum optype op;
 	assert(disp);
 	assertf(disp->request, "We do not have request signalized");
 
-	assread(disp->client_sock[1], &op, sizeof(op));
+	fd = disp->client_sock[1];
+
+	assread(fd, &op, sizeof(op));
 
 	switch(op) {
 		case CAN_CONTINUE:
 			assertf(0, "Got CAN_CONTINUE from child");
 			break;
 		case EVENT_COUNT:
-			assread(disp->client_sock[1], &count, sizeof(count));
+			assread(fd, &count, sizeof(count));
 
 			stat = emit_events(disp, count);
 			dbg("Emitted %d events (asked for %d)\n", stat, count);
 
 			/* acknowledge */
-			send_client(disp, EVENT_COUNT, stat);
+			send_message(fd, EVENT_COUNT, stat);
 			break;
 		case RUN_FUNC:
 			dbg("Running user's function\n");
 			disp->user_func(disp->user_func_data);
 
 			/* acknowledge */
-			send_client(disp, RUN_FUNC);
+			send_message(fd, RUN_FUNC);
 			break;
 		case BARRIER:
 			dbg("Syncing display\n");
-			send_client(disp, BARRIER);
+			send_message(fd, BARRIER);
 			break;
 		default:
 			assertf(0, "Unknown operation");
@@ -281,7 +270,7 @@ int
 wit_display_run(struct wit_display *d)
 {
 	assert(d && "Wrong pointer");
-	send_client(d, CAN_CONTINUE, 1);
+	send_message(d->client_sock[1], CAN_CONTINUE, 1);
 
 	wl_display_run(d->display);
 
@@ -371,7 +360,7 @@ wit_display_create_client(struct wit_display *disp,
 
 		disp->client = wl_client_create(disp->display, sockv[1]);
 		if (!disp->client) {
-			send_client(disp, CAN_CONTINUE, 0);
+			send_message(disp->client_sock[1], CAN_CONTINUE, 0);
 			assertf(disp->client, "Couldn't create wayland client");
 		}
 	}
