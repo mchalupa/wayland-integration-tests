@@ -18,6 +18,7 @@ struct wit_display {
 	struct {
 		struct wl_global *wl_seat;
 		struct wl_global *wl_compositor;
+		struct wl_global *wl_shm;
 		struct wl_global *global; /* one for user's arbitrary use */
 	} globals;
 
@@ -27,6 +28,7 @@ struct wit_display {
 		struct wl_resource *pointer;
 		struct wl_resource *keyboard;
 		struct wl_resource *touch;
+		struct wl_resource *shm;
 		struct wl_resource *surface;
 	} resources;
 

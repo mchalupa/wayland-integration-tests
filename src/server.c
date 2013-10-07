@@ -438,4 +438,8 @@ display_create_globals(struct wit_display *d)
 		assertf(d->globals.wl_compositor, "Failed creating global for compositor");
 	}
 
+	if (d->config.globals & CONF_SHM) {
+		assertf(wl_display_init_shm(d->display) == 0,
+			"Failed shm init");
+	}
 }
