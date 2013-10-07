@@ -285,3 +285,32 @@ FAIL_TEST(add_unknown_interface_listener_tst)
 	 * is expected to fail */
 	fprintf(stderr, "We should have been aborted by now...");
 }
+
+static int
+test_operations_main(int sock)
+{
+	struct wit_client *c = wit_client_populate(sock);
+
+	char str[] = "I'm bytestream";
+	wit_client_send_data(c, &str, sizeof(str));
+
+	wit_client_free(c);
+	return EXIT_SUCCESS;
+}
+
+TEST(test_operations_tst)
+{
+	struct wit_config conf = {0, 0, 0};
+	struct wit_display *d = wit_display_create(&conf);
+	wit_display_create_client(d, test_operations_main);
+
+	wit_display_run(d);
+
+	wit_display_process_request(d);
+
+	assert(strcmp(d->data, "I'm bytestream") == 0);
+
+	wit_display_destroy(d);
+}
+
+
