@@ -266,15 +266,13 @@ wit_display_destroy(struct wit_display *d)
 	assertf(exit_c == EXIT_SUCCESS, "Client exited with %d", exit_c);
 }
 
-int
+void
 wit_display_run(struct wit_display *d)
 {
 	assert(d && "Wrong pointer");
 	send_message(d->client_sock[1], CAN_CONTINUE, 1);
 
 	wl_display_run(d->display);
-
-	return d->client_exit_code;
 }
 
 static int

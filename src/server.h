@@ -59,7 +59,7 @@ wit_compositor(int (*client_main)(int));
 struct wit_display *
 wit_display_create(struct wit_config *);
 
-int
+void
 wit_display_run(struct wit_display *d);
 
 void
