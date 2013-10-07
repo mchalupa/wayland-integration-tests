@@ -1,29 +1,30 @@
 #ifndef __WIT_CLIENT_H__
 #define __WIT_CLIENT_H__
 
+/*
+ * Allow saving object along with some helper data and object's listener
+ */
+struct wit_client_object {
+	struct wl_proxy *proxy;
+	const struct wl_listener *listener;
+	void *data;
+	void (*data_destr)(void *); /* data destructor */
+};
 
 /**
  * Data (which can be) used by client.
  */
 struct wit_client {
 	struct wl_display *display;
-	struct wl_registry *registry;
 
-	struct wl_compositor *compositor;
-	struct wl_seat *seat;
-	struct wl_pointer *pointer;
-	struct wl_keyboard *keyboard;
-	struct wl_touch *touch;
+	struct wit_client_object registry;
+	struct wit_client_object compositor;
+	struct wit_client_object seat;
+	struct wit_client_object pointer;
+	struct wit_client_object keyboard;
+	struct wit_client_object touch;
 
 	int sock;
-
-	struct {
-		struct wl_registry_listener *registry;
-		struct wl_seat_listener *seat;
-		struct wl_pointer_listener *pointer;
-		struct wl_keyboard_listener *keyboard;
-		struct wl_touch_listener *touch;
-	} listener;
 
 	/* here we can store events if we need (no need to pass more arguments
 	 * or create global variables */

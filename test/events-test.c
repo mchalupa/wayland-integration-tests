@@ -138,7 +138,9 @@ eventarray_emit_main(int sock)
 {
 	struct wit_client *c = wit_client_populate(sock);
 	struct wl_surface *surface
-			= wl_compositor_create_surface(c->compositor);
+			= wl_compositor_create_surface(
+				(struct wl_compositor *) c->compositor.proxy);
+	assert(surface);
 	wl_display_roundtrip(c->display);
 
 	wit_client_ask_for_events(c, 0);

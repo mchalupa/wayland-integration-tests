@@ -47,54 +47,66 @@ wit_client_add_listener(struct wit_client *cl, const char *interface,
 	ifdbg(listener == NULL, "Adding NULL listener (%s)\n", interface);
 
 	if (strcmp(interface, "wl_pointer") == 0) {
-		ifdbg(cl->listener.pointer, "Rewriting pointer listener (%p)\n",
-		      cl->listener.pointer);
-		cl->listener.pointer = (struct wl_pointer_listener *) listener;
+		ifdbg(cl->pointer.listener, "Rewriting pointer listener (%p)\n",
+		      cl->pointer.listener);
+		cl->pointer.listener = listener;
 
-		if (cl->pointer)
-			wl_pointer_add_listener(cl->pointer,
-						cl->listener.pointer, cl);
+		if (cl->pointer.proxy)
+			wl_pointer_add_listener(
+				(struct wl_pointer *) cl->pointer.proxy,
+				(struct wl_pointer_listener *) cl->pointer.listener,
+				cl);
 		else
 			dbg("Not adding listener. Pointer proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_keyboard") == 0) {
-		ifdbg(cl->listener.keyboard, "Rewriting keyboard listener (%p)\n",
-		      cl->listener.keyboard);
-		cl->listener.keyboard = (struct wl_keyboard_listener *) listener;
+		ifdbg(cl->keyboard.listener, "Rewriting keyboard listener (%p)\n",
+		      cl->keyboard.listener);
+		cl->keyboard.listener = listener;
 
-		if (cl->keyboard)
-			wl_keyboard_add_listener(cl->keyboard,
-						 cl->listener.keyboard, cl);
+		if (cl->keyboard.proxy)
+			wl_keyboard_add_listener(
+				(struct wl_keyboard *) cl->keyboard.proxy,
+				(struct wl_keyboard_listener *) cl->keyboard.listener,
+				cl);
 		else
 			dbg("Not adding listener. Keyboard proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_touch") == 0) {
-		ifdbg(cl->listener.touch, "Rewriting touch listener (%p)\n",
-		      cl->listener.touch);
-		cl->listener.touch = (struct wl_touch_listener *) listener;
+		ifdbg(cl->touch.listener, "Rewriting touch listener (%p)\n",
+		      cl->touch.listener);
+		cl->touch.listener = listener;
 
-		if (cl->touch)
-			wl_touch_add_listener(cl->touch, cl->listener.touch, cl);
+		if (cl->touch.proxy)
+			wl_touch_add_listener(
+				(struct wl_touch *) cl->touch.proxy,
+				(struct wl_touch_listener *) cl->touch.listener,
+				cl);
 		else
-			dbg("Not adding listener. Touch proxy hasn't been created yet.\n");
+			dbg("Not adding listener. touch proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_seat") == 0) {
-		ifdbg(cl->listener.seat, "Rewriting seat listener (%p)\n",
-		      cl->listener.seat);
-		cl->listener.seat = (struct wl_seat_listener *) listener;
+		ifdbg(cl->seat.listener, "Rewriting seat listener (%p)\n",
+		      cl->seat.listener);
+		cl->seat.listener = listener;
 
-		if (cl->seat)
-			wl_seat_add_listener(cl->seat, cl->listener.seat, cl);
+		if (cl->seat.proxy)
+			wl_seat_add_listener(
+				(struct wl_seat *) cl->seat.proxy,
+				(struct wl_seat_listener *) cl->seat.listener,
+				cl);
 		else
-			dbg("Not adding listener. Seat proxy hasn't been created yet.\n");
+			dbg("Not adding listener. seat proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_registry") == 0) {
-		ifdbg(cl->listener.registry, "Rewriting registry listener (%p)\n",
-		      cl->listener.pointer);
-		cl->listener.registry = (struct wl_registry_listener *) listener;
+		ifdbg(cl->registry.listener, "Rewriting registry listener (%p)\n",
+		      cl->registry.listener);
+		cl->registry.listener = listener;
 
-		if (cl->registry)
-			wl_registry_add_listener(cl->registry, cl->listener.registry, cl);
+		if (cl->registry.proxy)
+			wl_registry_add_listener(
+				(struct wl_registry *) cl->registry.proxy,
+				(struct wl_registry_listener *) cl->registry.listener,
+				cl);
 		else
-			dbg("Not adding listener. Registry proxy hasn't been created yet.\n");
-	}
-	else {
+			dbg("Not adding listener. registry proxy hasn't been created yet.\n");
+	} else {
 		assertf(0, "Unknown type of interface");
 	}
 }
@@ -110,8 +122,9 @@ wit_client_populate(int sock)
 	c->display = wl_display_connect(NULL);
 	assertf(c->display, "Couldn't connect to display");
 
-	c->registry = wl_display_get_registry(c->display);
-	assertf(c->registry, "Couldn't get registry");
+	c->registry.proxy =
+		(struct wl_proxy *) wl_display_get_registry(c->display);
+	assertf(c->registry.proxy, "Couldn't get registry");
 
 	wit_client_add_listener(c, "wl_registry", &registry_default_listener);
 	wl_display_dispatch(c->display);
@@ -120,6 +133,29 @@ wit_client_populate(int sock)
 		"An error in display occured");
 
 	return c;
+}
+
+static void
+client_object_destroy(struct wit_client_object *obj,
+			void (*proxy_dest_func)(struct wl_proxy *))
+{
+	if (! obj)
+		return;
+
+	if (proxy_dest_func == NULL)
+		proxy_dest_func = wl_proxy_destroy;
+
+	/* destory data if we have been given destructor */
+	if (obj->data && obj->data_destr)
+		obj->data_destr(obj->data);
+
+	if (obj->proxy)
+		/* compiler screams, so retype it .. */
+		proxy_dest_func((void *) obj->proxy);
+
+	/* suppose we're destroying object in client's struct, so this
+	 * will have effect */
+	memset(obj, 0, sizeof(struct wit_client_object));
 }
 
 void
@@ -131,18 +167,12 @@ wit_client_free(struct wit_client *c)
 	assertf(wl_display_get_error(c->display) == 0,
 		"An error in display occured");
 
-	wl_registry_destroy(c->registry);
-
-	if (c->compositor)
-		wl_compositor_destroy(c->compositor);
-	if (c->seat)
-		wl_seat_destroy(c->seat);
-	if (c->pointer)
-		wl_pointer_destroy(c->pointer);
-	if (c->keyboard)
-		wl_keyboard_destroy(c->keyboard);
-	if (c->touch)
-		wl_touch_destroy(c->touch);
+	client_object_destroy(&c->compositor, (void *) &wl_compositor_destroy);
+	client_object_destroy(&c->seat, (void *) &wl_seat_destroy);
+	client_object_destroy(&c->pointer, (void *) &wl_pointer_destroy);
+	client_object_destroy(&c->keyboard, (void *) &wl_keyboard_destroy);
+	client_object_destroy(&c->touch, (void *) &wl_touch_destroy);
+	client_object_destroy(&c->registry, (void *) &wl_registry_destroy);
 
 	wl_display_disconnect(c->display);
 	close(c->sock);
@@ -222,14 +252,14 @@ wit_client_state(struct wit_client *cl)
 	    cl,
 	    cl->display ? "yes" : "no",
 	    cl->emitting ? "yes" : "no",
-	    cl->registry ? "registry" : "*",
-	    cl->seat ? "seat" : "*",
-	    cl->pointer ? "pointer" : "*",
-	    cl->keyboard ? "keyboard" : "*",
-	    cl->touch ? "touch" : "*",
-	    cl->listener.registry ? "registry" : "*",
-	    cl->listener.seat ? "seat" : "*",
-	    cl->listener.pointer ? "pointer" : "*",
-	    cl->listener.keyboard ? "keyboard" : "*",
-	    cl->listener.touch ? "touch" : "*");
+	    cl->registry.proxy ? "registry" : "*",
+	    cl->seat.proxy ? "seat" : "*",
+	    cl->pointer.proxy ? "pointer" : "*",
+	    cl->keyboard.proxy ? "keyboard" : "*",
+	    cl->touch.proxy ? "touch" : "*",
+	    cl->registry.listener ? "registry" : "*",
+	    cl->seat.listener  ? "seat" : "*",
+	    cl->pointer.listener  ? "pointer" : "*",
+	    cl->keyboard.listener  ? "keyboard" : "*",
+	    cl->touch.listener  ? "touch" : "*");
 }

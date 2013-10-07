@@ -191,14 +191,14 @@ client_populate_main(int sock)
 	struct wit_client *c = wit_client_populate(sock);
 	assert(c);
 	assert(c->display);
-	assert(c->registry);
+	assert(c->registry.proxy);
 
 	/* we have default settings, check it */
-	assert(c->compositor);
-	assert(c->seat);
-	assert(c->pointer);
-	assert(c->keyboard);
-	assert(c->touch);
+	assert(c->compositor.proxy);
+	assert(c->seat.proxy);
+	assert(c->pointer.proxy);
+	assert(c->keyboard.proxy);
+	assert(c->touch.proxy);
 
 	wit_client_free(c);
 
@@ -231,36 +231,28 @@ static const struct wl_touch_listener *dummy_touch_listener = (void *) 0xBEAF;
 static int
 add_listener_main(int sock)
 {
-	int listeners_tested = 5;
-	int listeners_no;
-
 	struct wit_client *c = wit_client_populate(sock);
 
-	assertf(c->listener.registry != NULL,
+	assertf(c->registry.listener != NULL,
 		"In populate should have been default registry listener assigned");
-	assertf(c->listener.seat == NULL,
+	assertf(c->seat.listener == NULL,
 		"We didn't created seat so the default seat listener shouldn't be assigned");
 
 
 	wit_client_add_listener(c, "wl_pointer",
 				(void *) dummy_pointer_listener);
-	assertf(c->listener.pointer == dummy_pointer_listener,
+	assertf(c->pointer.listener == (void *) dummy_pointer_listener,
 		"Failed adding pointer listener");
 
 	wit_client_add_listener(c, "wl_keyboard",
 				(void *) dummy_keyboard_listener);
-	assertf(c->listener.keyboard == dummy_keyboard_listener,
+	assertf(c->keyboard.listener == (void *) dummy_keyboard_listener,
 		"Failed adding keyboard listener");
 
 	wit_client_add_listener(c, "wl_touch",
 				(void *) dummy_touch_listener);
-	assertf(c->listener.touch == dummy_touch_listener,
+	assertf(c->touch.listener == (void *) dummy_touch_listener,
 		"Failed adding touch listener");
-
-	/* Do we have tested all? */
-	listeners_no = sizeof(c->listener) / sizeof(struct wl_listener *);
-	assertf(listeners_tested == listeners_no,
-		"Missing tests for assigning listeners");
 
 	wit_client_free(c);
 	return EXIT_SUCCESS;

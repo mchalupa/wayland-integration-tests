@@ -97,8 +97,9 @@ pointer_test_each_once_main(int sock)
 	WIT_EVENTARRAY_DEFINE(recived_events);
 
 	struct wit_client *c = wit_client_populate(sock);
-	struct wl_surface_interface *surface
-				= wl_compositor_create_surface(c->compositor);
+	struct wl_surface *surface
+				= wl_compositor_create_surface(
+					(struct wl_compositor *) c->compositor.proxy);
 	assert(surface);
 	wl_display_roundtrip(c->display);
 
