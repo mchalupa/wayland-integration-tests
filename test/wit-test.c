@@ -192,12 +192,14 @@ client_populate_main(int sock)
 	assert(c->display);
 	assert(c->registry.proxy);
 
-	/* we have default settings, check it */
 	assert(c->compositor.proxy);
 	assert(c->seat.proxy);
 	assert(c->pointer.proxy);
 	assert(c->keyboard.proxy);
 	assert(c->touch.proxy);
+	assert(c->shm.proxy);
+
+	wl_display_roundtrip(c->display);
 
 	wit_client_free(c);
 
@@ -206,7 +208,8 @@ client_populate_main(int sock)
 
 TEST(client_populate_tst)
 {
-	struct wit_display *d = wit_display_create(NULL);
+	struct wit_config conf = {CONF_ALL, CONF_ALL, 0};
+	struct wit_display *d = wit_display_create(&conf);
 	wit_display_create_client(d, client_populate_main);
 
 	wit_display_run(d);
