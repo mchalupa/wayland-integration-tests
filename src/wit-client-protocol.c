@@ -96,7 +96,10 @@ seat_handle_caps(void *data, struct wl_seat *seat, enum wl_seat_capability caps)
 static void
 seat_handle_name(void *data, struct wl_seat *wl_seat, const char *name)
 {
-	//struct wit_client *c = data;
+	struct wit_client *c = data;
+
+	c->seat.data = strdup(name);
+	c->seat.data_destr = &free;
 }
 
 const struct wl_seat_listener seat_default_listener = {
