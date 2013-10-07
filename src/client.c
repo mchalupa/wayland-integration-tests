@@ -36,6 +36,7 @@
 
 /*
  * Allow comfortably add listener into client structure
+ * XXX Do it somehow else.. or let user manually add listeners
  */
 void
 wit_client_add_listener(struct wit_client *cl, const char *interface,
@@ -214,6 +215,8 @@ wit_client_ask_for_events(struct wit_client *cl, int n)
 
 	kick_display();
 	send_message(cl->sock, EVENT_COUNT, n);
+
+	cl->emitting = 1;
 
 	assread(cl->sock, &op, sizeof(op));
 	assertf(op == EVENT_COUNT, "Got bad acknowledge (%d instead of %d)", op,
