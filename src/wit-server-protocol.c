@@ -139,6 +139,9 @@ static void compositor_handle_create_surface(struct wl_client *client,
 	struct wit_display *d = wl_resource_get_user_data(resource);
 	assert(d);
 
+	/* XXX add support for multiple surfaces */
+	ifdbg(d->resources.surface, "Overridding surface\n");
+
 	if (!(d->config.resources & CONF_SURFACE)) {
 		dbg("Creating surface resource suppressed\n");
 		return;
