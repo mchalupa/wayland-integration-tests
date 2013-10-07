@@ -132,6 +132,16 @@ registry_handle_global(void *data, struct wl_registry *registry,
 							version);
 		assertf(cl->compositor.proxy,
 			"Binding to registry for compositor failed");
+	} else if (strcmp(interface, "wl_shm") == 0) {
+		if (cl->shm.proxy)
+			wl_shm_destroy(
+				(struct wl_shm *) cl->shm.proxy);
+
+		cl->shm.proxy = wl_registry_bind(registry, id,
+						 &wl_shm_interface,
+						 version);
+		assertf(cl->shm.proxy,
+			"Binding to registry for wl_shm failed");
 	} else if (strcmp(interface, "wl_display") == 0) {
 		// do nothing
 	} else {

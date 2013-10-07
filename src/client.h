@@ -23,6 +23,7 @@ struct wit_client {
 	struct wit_client_object pointer;
 	struct wit_client_object keyboard;
 	struct wit_client_object touch;
+	struct wit_client_object shm;
 
 	int sock;
 
