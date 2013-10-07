@@ -266,9 +266,11 @@ run_compositor_with_dummy(int (*client_main)(int))
 							  &wl_dummy_interface,
 							  1, d, dummy_bind);
 	int stat = EXIT_FAILURE;
-	stat = wit_display_run(d);
+	wit_display_run(d);
 
 	wl_global_destroy(dummy_global);
+
+	stat = d->client_exit_code;
 	wit_display_destroy(d);
 
 	return stat;
@@ -283,8 +285,6 @@ TEST(dummy_invoke_catch)
 	for (i = 0; i < REQUESTS_NO; i++)
 		assertf(requests_ackn[i] == 1,
 			"Request no. %d was invoked %d times", i, requests_ackn[i]);
-
-	exit(stat);
 }
 
 static int
@@ -348,11 +348,9 @@ TEST(create_setget)
 	struct wit_display *d = wit_display_create(NULL);
 	wit_display_create_client(d, proxy_create_main);
 
-	int stat = wit_display_run(d);
+	wit_display_run(d);
 
 	wit_display_destroy(d);
-
-	exit(stat);
 }
 
 

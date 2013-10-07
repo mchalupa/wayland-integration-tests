@@ -70,7 +70,6 @@ TEST(compositor_create)
 	assert(~CONF_ALL == 0); /* sanity test */
 
 	wit_display_destroy(d);
-	exit(EXIT_SUCCESS);
 }
 
 static int
@@ -90,9 +89,10 @@ TEST(client_create)
 	assertf(d->client, "Client is NULL");
 	assertf(d->client_pid != 0, "Client pid is weird (%d)..", d->client_pid);
 
-	stat = wit_display_run(d);
-	assertf(stat == 42, "The value returned in client_main doesn't mach the"
-				" value returned by wit_display_run (%d != 42)", stat);
+	wit_display_run(d);
+	assertf(d->client_exit_code == 42,
+		"The value returned in client_main doesn't mach 42 (%d)",
+		d->client_exit_code);
 
 	/* nobody requested anything */
 	assert(d->request == 0);
@@ -101,7 +101,6 @@ TEST(client_create)
 	d->client_exit_code = 0;
 
 	wit_display_destroy(d);
-	exit(EXIT_SUCCESS);
 }
 
 TEST(user_data_without_destr)
@@ -156,12 +155,11 @@ user_func_main(int sock)
 TEST(user_func_tst)
 {
 	struct wit_display *d = wit_display_create(NULL);
-	int stat;
 
 	wit_display_create_client(d, user_func_main);
 	wit_display_add_user_func(d, user_func, (void *) 0xdeadbee);
 
-	stat = wit_display_run(d);
+	wit_display_run(d);
 
 	/* process user func */
 	wit_display_process_request(d);
@@ -212,7 +210,7 @@ TEST(client_populate_tst)
 	struct wit_display *d = wit_display_create(NULL);
 	wit_display_create_client(d, client_populate_main);
 
-	int stat = wit_display_run(d);
+	wit_display_run(d);
 
 	/* we have default settings */
 	assert(d->globals.compositor);
@@ -224,8 +222,6 @@ TEST(client_populate_tst)
 	assert(d->resources.keyboard);
 	assert(d->resources.touch);
 	wit_display_destroy(d);
-
-	exit(stat);
 }
 
 static const struct wl_pointer_listener *dummy_pointer_listener = (void *) 0xBED;
@@ -277,14 +273,14 @@ TEST(add_listener_tst)
 	struct wit_display *d = wit_display_create(&conf);
 	wit_display_create_client(d, add_listener_main);
 
-	assert(wit_display_run(d) == EXIT_SUCCESS);
+	wit_display_run(d);
 
 	wit_display_destroy(d);
 }
 
 FAIL_TEST(add_unknown_interface_listener_tst)
 {
-	struct wit_client c = {0};
+	struct wit_client c = {0,};
 
 	/* should abort from inside the function */
 	wit_client_add_listener(&c, "wl_unknown_interface_!@#$",
@@ -293,6 +289,4 @@ FAIL_TEST(add_unknown_interface_listener_tst)
 	/* only print, assert would pass the test, because this test
 	 * is expected to fail */
 	fprintf(stderr, "We should have been aborted by now...");
-
-	exit(EXIT_SUCCESS);
 }
