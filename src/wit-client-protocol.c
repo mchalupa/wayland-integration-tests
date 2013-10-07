@@ -84,17 +84,15 @@ seat_handle_caps(void *data, struct wl_seat *seat, enum wl_seat_capability caps)
 		"An error in display occured");
 }
 
-/*
 static void
 seat_handle_name(void *data, struct wl_seat *wl_seat, const char *name)
 {
-	struct client *c = data;
+	//struct wit_client *c = data;
 }
-*/
 
 const struct wl_seat_listener seat_default_listener = {
 	seat_handle_caps,
-	NULL /* seat_handle_name */
+	seat_handle_name
 };
 
 /* -----------------------------------------------------------------------------
