@@ -16,8 +16,8 @@ struct wit_display {
 	struct wl_event_loop *loop;
 
 	struct {
-		struct wl_global *seat;
-		struct wl_global *compositor;
+		struct wl_global *wl_seat;
+		struct wl_global *wl_compositor;
 		struct wl_global *global; /* one for user's arbitrary use */
 	} globals;
 

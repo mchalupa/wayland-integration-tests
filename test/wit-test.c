@@ -212,8 +212,8 @@ TEST(client_populate_tst)
 	wit_display_run(d);
 
 	/* we have default settings */
-	assert(d->globals.compositor);
-	assert(d->globals.seat);
+	assert(d->globals.wl_compositor);
+	assert(d->globals.wl_seat);
 	assert(d->globals.global == NULL);
 	assert(d->resources.compositor);
 	assert(d->resources.seat);

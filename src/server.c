@@ -423,19 +423,19 @@ display_create_globals(struct wit_display *d)
 		return;
 
 	if (d->config.globals & CONF_SEAT) {
-		d->globals.seat =
+		d->globals.wl_seat =
 			wl_global_create(d->display, &wl_seat_interface,
 					 wl_seat_interface.version,
 					 d, seat_bind);
-		assertf(d->globals.seat, "Failed creating global for seat");
+		assertf(d->globals.wl_seat, "Failed creating global for seat");
 	}
 
 	if (d->config.globals & CONF_COMPOSITOR) {
-		d->globals.compositor =
+		d->globals.wl_compositor =
 			wl_global_create(d->display, &wl_compositor_interface,
 					 wl_compositor_interface.version,
 					 d, compositor_bind);
-		assertf(d->globals.compositor, "Failed creating global for compositor");
+		assertf(d->globals.wl_compositor, "Failed creating global for compositor");
 	}
 
 }
