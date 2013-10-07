@@ -51,6 +51,8 @@ send_message(int fd, enum optype op, ...)
 {
 	va_list vl;
 	int cont, count;
+	void *mem;
+	size_t size;
 
 	/* enum optype is defined from 1 */
 	assertf(op > 0, "Wrong operation");
@@ -83,8 +85,18 @@ send_message(int fd, enum optype op, ...)
 		case BARRIER:
 			asswrite(fd, &op, sizeof(op));
 			break;
-		case EVENT_EMIT:
 		case SEND_BYTES:
+			mem = va_arg(vl, void *);
+			assertf(mem, "SEND_BYTES: Passed NULL data");
+			size = va_arg(vl, size_t);
+			assertf(size > 0, "SEND_BYTES: size must be greater than 0 (%lu)",
+				size);
+
+			asswrite(fd, &op, sizeof(op));
+			asswrite(fd, &size, sizeof(size_t));
+			asswrite(fd, mem, size);
+			break;
+		case EVENT_EMIT:
 			assertf(0, "Not implemented");
 		default:
 			assertf(0, "Unknown operation (%d)", op);
