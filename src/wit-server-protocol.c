@@ -135,17 +135,18 @@ static void compositor_handle_create_surface(struct wl_client *client,
 {
 	assert(client && resource);
 
+	struct wit_surface *s;
 	struct wl_resource *res;
 	struct wit_display *d = wl_resource_get_user_data(resource);
 	assert(d);
-
-	/* XXX add support for multiple surfaces */
-	ifdbg(d->resources.surface, "Overridding surface\n");
 
 	if (!(d->config.resources & CONF_SURFACE)) {
 		dbg("Creating surface resource suppressed\n");
 		return;
 	}
+
+	s = malloc(sizeof *s);
+	assert(s && "Out of memory");
 
 	res = wl_resource_create(client, &wl_surface_interface,
 				 wl_resource_get_version(resource), id);
@@ -153,7 +154,10 @@ static void compositor_handle_create_surface(struct wl_client *client,
 
 	wl_resource_set_implementation(res, NULL /* implementation */, d, NULL);
 
-	d->resources.surface = res;
+	s->resource = res;
+	s->id = id;
+
+	wl_list_insert(d->surfaces.next, &s->link);
 }
 
 /**

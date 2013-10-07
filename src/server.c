@@ -240,6 +240,8 @@ wit_display_create(struct wit_config *conf)
 		"Cannot create socket for comunication "
 		"between client and server");
 
+	wl_list_init(&d->surfaces);
+
 	return d;
 }
 
@@ -248,6 +250,7 @@ wit_display_destroy(struct wit_display *d)
 {
 	assert(d && "Invalid pointer given to destroy_compositor");
 
+	struct wit_surface *pos, *tmp;
 	int exit_c = d->client_exit_code;
 
 	if (d->data && d->data_destroy_func)
@@ -255,6 +258,10 @@ wit_display_destroy(struct wit_display *d)
 
 	close(d->client_sock[0]);
 	close(d->client_sock[1]);
+
+	wl_list_for_each_safe(pos, tmp, &d->surfaces, link) {
+		free(pos);
+	}
 
 	wl_event_source_remove(d->sigchld);
 	wl_event_source_remove(d->sigusr1);

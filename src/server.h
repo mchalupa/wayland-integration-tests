@@ -6,6 +6,13 @@
 #include "configuration.h"
 #include "events.h"
 
+struct wit_surface {
+	struct wl_list link;
+
+	struct wl_resource *resource;
+	uint32_t id;
+};
+
 /* ===
  *  Compositor
    === */
@@ -31,6 +38,9 @@ struct wit_display {
 		struct wl_resource *shm;
 		struct wl_resource *surface;
 	} resources;
+
+	/* list of wit_surfaces */
+	struct wl_list surfaces;
 
 	int client_sock[2];
 	struct wl_event_source *sigchld;
