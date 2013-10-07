@@ -33,10 +33,12 @@ static struct wit_eventarray events = {{0}, 0, 0};
     Pointer listener
    -------------------------------------------------------------------------- */
 static void
-pointer_handle_enter(void *data, struct wl_pointer *wl_pointer, uint32_t serial,
+pointer_handle_enter(void *data, struct wl_pointer *pointer, uint32_t serial,
 		     struct wl_surface *surface, wl_fixed_t surface_x,
 		     wl_fixed_t surface_y)
 {
+	assert(pointer);
+
 	struct wit_client *c = data;
 	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_ENTER);
 
@@ -44,9 +46,11 @@ pointer_handle_enter(void *data, struct wl_pointer *wl_pointer, uint32_t serial,
 }
 
 static void
-pointer_handle_leave(void *data, struct wl_pointer *wl_pointer, uint32_t serial,
+pointer_handle_leave(void *data, struct wl_pointer *pointer, uint32_t serial,
 		     struct wl_surface *surface)
 {
+	assert(pointer);
+
 	struct wit_client *c = data;
 	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_LEAVE);
 
@@ -57,6 +61,8 @@ static void
 pointer_handle_motion(void *data, struct wl_pointer *pointer, uint32_t time,
 		      wl_fixed_t x, wl_fixed_t y)
 {
+	assert(pointer);
+
 	struct wit_client *c = data;
 	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_MOTION);
 
@@ -67,6 +73,8 @@ static void
 pointer_handle_button(void *data, struct wl_pointer *pointer, uint32_t serial,
 		      uint32_t time, uint32_t button, uint32_t state)
 {
+	assert(pointer);
+
 	struct wit_client *c = data;
 	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_BUTTON);
 
@@ -77,6 +85,8 @@ static void
 pointer_handle_axis(void *data, struct wl_pointer *pointer, uint32_t time,
 		    uint32_t axis, wl_fixed_t value)
 {
+	assert(pointer);
+
 	struct wit_client *c = data;
 	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_AXIS);
 
@@ -103,9 +113,6 @@ pointer_test_each_once_main(int sock)
 	assert(surface);
 	wl_display_roundtrip(c->display);
 
-	wit_client_call_user_func(c);
-	wl_display_roundtrip(c->display);
-
 	wit_client_add_listener(c, "wl_pointer", &pointer_default_listener);
 	c->events = recived_events;
 
@@ -119,20 +126,9 @@ pointer_test_each_once_main(int sock)
 	return EXIT_SUCCESS;
 }
 
-/* we need to add it after creating surface from child */
-void emit_enter_and_leave(void *data)
-{
-	struct wit_display *d = data;
-	struct wit_event pointer_event = {&wl_pointer_interface, WL_POINTER_ENTER};
-
-	assertf(d->resources.surface, "Surface haven't been created yet");
-
-}
-
 TEST(pointer_each_once_tst)
 {
 	struct wit_display *d = wit_display_create(NULL);
-	wit_display_add_user_func(d, emit_enter_and_leave, d);
 
 	/* I'm lazy, use this one variable for all events (modify it manually) */
 	struct wit_event pointer_event = {&wl_pointer_interface, WL_POINTER_MOTION};
@@ -153,9 +149,6 @@ TEST(pointer_each_once_tst)
 	pointer_event.opcode = WL_POINTER_LEAVE;
 	wit_eventarray_add(d->events, &pointer_event, 111, d->resources.surface);
 */
-
-	/* client is calling barrier */
-	wit_display_process_request(d);
 
 	/* client is calling for events*/
 	wit_display_process_request(d);
