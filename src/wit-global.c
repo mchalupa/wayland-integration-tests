@@ -28,9 +28,9 @@
 int
 asswrite(int fd, void *src, size_t size)
 {
-	int stat = write(fd, src, size);
+	size_t stat = write(fd, src, size);
 	assertf(stat == size,
-		"Sent %d instead of %lu bytes",	stat, size);
+		"Sent %lu instead of %lu bytes",	stat, size);
 
 	return stat;
 }
@@ -38,9 +38,9 @@ asswrite(int fd, void *src, size_t size)
 int
 assread(int fd, void *dest, size_t size)
 {
-	int stat = read(fd, dest, size);
+	size_t stat = read(fd, dest, size);
 	assertf(stat == size,
-		"Recieved %d instead of %lu bytes", stat, size);
+		"Recieved %lu instead of %lu bytes", stat, size);
 
 	return stat;
 }
