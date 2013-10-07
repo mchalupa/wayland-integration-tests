@@ -151,44 +151,11 @@ wit_client_free(struct wit_client *c)
 }
 
 static void
-send_display(struct wit_client *cl, enum optype op, ...)
+kick_display(void)
 {
-	va_list vl;
-	int stat;
-
-	assertf(cl, "No client's structure passed");
-
-	/* kick to display to have its attention */
-	stat = kill(getppid(), SIGUSR1);
+	int stat = kill(getppid(), SIGUSR1);
 	assertf(stat == 0,
 		"Failed sending SIGUSR1 signal to display");
-
-	va_start(vl, op);
-	switch(op) {
-		case CAN_CONTINUE:
-			assertf(0, "Got CAN_CONTINUE when client is running");
-		case RUN_FUNC:
-			stat = asswrite(cl->sock, &op, sizeof(op));
-			break;
-		case EVENT_COUNT:
-			count = va_arg(vl, int);
-			assertf(count >= 0, "EVENT_COUNT: Asked for negative number of events");
-
-			asswrite(cl->sock, &op, sizeof(op));
-			asswrite(cl->sock, &count, sizeof(int));
-
-			cl->emitting = 1;
-			break;
-		case BARRIER:
-			asswrite(cl->sock, &op, sizeof(op));
-			break;
-		case EVENT_EMIT:
-		case SEND_BYTES:
-			assertf(0, "Not implemented");
-		default:
-			assertf(0, "Unsupported or unknown type of operation (%d)", op);
-	}
-	va_end(vl);
 }
 
 void
@@ -198,7 +165,8 @@ wit_client_call_user_func(struct wit_client *cl)
 
 	dbg("Request for user func\n");
 
-	send_display(cl, RUN_FUNC);
+	kick_display();
+	send_message(cl->sock, RUN_FUNC);
 	assread(cl->sock, &op, sizeof(op));
 	assertf(op == RUN_FUNC, "Got bad acknowledge (%d instead of %d)", op,
 		RUN_FUNC);
@@ -212,9 +180,10 @@ wit_client_ask_for_events(struct wit_client *cl, int n)
 	int count;
 	enum optype op;
 
-	dbg("Request for events\n");
+	dbg("Request for events(%p, %d)\n", cl, n);
 
-	send_display(cl, EVENT_COUNT, n);
+	kick_display();
+	send_message(cl->sock, EVENT_COUNT, n);
 
 	assread(cl->sock, &op, sizeof(op));
 	assertf(op == EVENT_COUNT, "Got bad acknowledge (%d instead of %d)", op,
@@ -231,7 +200,8 @@ wit_client_barrier(struct wit_client *cl)
 {
 	enum optype op;
 
-	send_display(cl, BARRIER);
+	kick_display();
+	send_message(cl->sock, BARRIER);
 
 	/* wait for display's barrier call */
 	assread(cl->sock, &op, sizeof(op));
