@@ -151,7 +151,7 @@ static void
 send_display(struct wit_client *cl, enum optype op, ...)
 {
 	va_list vl;
-	int stat, count;
+	int stat;
 
 	assertf(cl, "No client's structure passed");
 
@@ -191,7 +191,6 @@ send_display(struct wit_client *cl, enum optype op, ...)
 void
 wit_client_call_user_func(struct wit_client *cl)
 {
-	int stat;
 	enum optype op;
 
 	dbg("Request for user func\n");
@@ -207,7 +206,7 @@ wit_client_call_user_func(struct wit_client *cl)
 int
 wit_client_ask_for_events(struct wit_client *cl, int n)
 {
-	int stat, count;
+	int count;
 	enum optype op;
 
 	dbg("Request for events\n");
@@ -227,7 +226,6 @@ wit_client_ask_for_events(struct wit_client *cl, int n)
 void
 wit_client_barrier(struct wit_client *cl)
 {
-	int stat;
 	enum optype op;
 
 	send_display(cl, BARRIER);
