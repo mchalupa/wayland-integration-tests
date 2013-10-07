@@ -291,7 +291,6 @@ wit_display_run(struct wit_display *d)
 static int
 run_client(int (*client_main)(int), int wayland_sock, int client_sock)
 {
-	int stat;
 	char s[32];
 	enum optype op = 0;
 	int can_continue = 0;
