@@ -63,7 +63,7 @@ TEST(compositor_create)
 	assert(d->request == 0);
 
 	/* check for default configs */
-	assert(d->config.globals == CONF_SEAT | CONF_COMPOSITOR);
+	assert(d->config.globals == (CONF_SEAT | CONF_COMPOSITOR));
 	assert(d->config.resources == CONF_ALL);
 	assert(d->config.options == ~CONF_ALL);
 	/* ~CONF_ALL == 0 */
