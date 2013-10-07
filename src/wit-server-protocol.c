@@ -144,6 +144,7 @@ surface_handle_destroy(struct wl_client *client, struct wl_resource *resource)
 	}
 
 	wl_list_remove(&r->link);
+	wl_resource_destroy(r->resource);
 	free(r);
 
 }
