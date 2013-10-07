@@ -21,6 +21,7 @@
  */
 
 #include <assert.h>
+#include <string.h>
 #include <wayland-client.h>
 
 #include "test-runner.h"
@@ -82,8 +83,6 @@ client_main(int s)
 TEST(client_create)
 {
 	struct wit_display *d = wit_display_create(NULL);
-	int stat;
-
 	wit_display_create_client(d, client_main);
 
 	assertf(d->client, "Client is NULL");
@@ -272,7 +271,8 @@ TEST(add_listener_tst)
 
 FAIL_TEST(add_unknown_interface_listener_tst)
 {
-	struct wit_client c = {0,};
+	struct wit_client c;
+	memset(&c, 0, sizeof c);
 
 	/* should abort from inside the function */
 	wit_client_add_listener(&c, "wl_unknown_interface_!@#$",
