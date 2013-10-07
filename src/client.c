@@ -164,7 +164,8 @@ wit_client_free(struct wit_client *c)
 {
 	assertf(c, "Wrong pointer");
 
-	wl_display_dispatch_pending(c->display);
+	/* do everything what left */
+	wl_display_roundtrip(c->display);
 	assertf(wl_display_get_error(c->display) == 0,
 		"An error in display occured");
 
