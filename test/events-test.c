@@ -47,34 +47,27 @@ TEST(define_event_tst)
 
 }
 
-const static struct wl_interface intf = {"wl_test_interface", 1, 0, NULL, 3, NULL};
+static const struct wl_interface intf = {"wl_test_interface", 1, 0, NULL, 3, NULL};
 
 TEST(define_edge_event_opcode_tst)
 {
 	/* opcode is the lower edge value */
 	WIT_EVENT_DEFINE(event, &intf, 2);
-	exit(! &event); /* suppress compiler warning */
+	exit(! event->interface); /* suppress compiler warning */
 }
 
 FAIL_TEST(define_illegal_event_1_tst)
 {
 	/* opcode is the higher edge value */
 	WIT_EVENT_DEFINE(event, &intf, 3);
-	exit(! &event); /* suppress compiler warning */
+	exit(! event->interface); /* suppress compiler warning */
 }
 
 FAIL_TEST(define_illegal_event_2_tst)
 {
 	/* too big opcode */
 	WIT_EVENT_DEFINE(event, &intf, 4);
-	exit(! &event); /* suppress compiler warning */
-}
-
-FAIL_TEST(define_illegal_event_3_tst)
-{
-	/* NULL interface */
-	WIT_EVENT_DEFINE(event, NULL, 0);
-	exit(! &event); /* suppress compiler warning */
+	exit(! event->interface); /* suppress compiler warning */
 }
 
 TEST(eventarray_init_tst)
