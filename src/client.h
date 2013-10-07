@@ -6,7 +6,7 @@
  */
 struct wit_client_object {
 	struct wl_proxy *proxy;
-	const struct wl_listener *listener;
+	const void *listener;
 	void *data;
 	void (*data_destr)(void *); /* data destructor */
 };
