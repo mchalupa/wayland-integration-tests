@@ -35,11 +35,10 @@ struct wit_eventarray {
 /* we use pointer in all functions, so create event as opaque structure
  * and "return" pointer */
 #define WIT_EVENT_DEFINE(eventname, intf, opcode) 				\
-	assertf((intf), "WIT_EVENT_DEFINE: Interface cannot be NULL");		\
 	assertf((opcode) < ((struct wl_interface *) (intf))->event_count,	\
 		"WIT_EVENT_DEFINE: Event opcode is illegal (%d for '%s')",	\
 		(opcode),((struct wl_interface *) (intf))->name);		\
-	const static struct wit_event __wit_event_##eventname##_		\
+	static const struct wit_event __wit_event_##eventname##_		\
 							= {(intf), (opcode)};	\
 	const struct wit_event *(eventname) = &__wit_event_##eventname##_;
 
