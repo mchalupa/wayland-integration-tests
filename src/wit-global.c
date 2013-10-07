@@ -61,6 +61,8 @@ send_message(int fd, enum optype op, ...)
 	switch (op) {
 		case CAN_CONTINUE:
 			cont = va_arg(vl, int);
+			assertf(cont == 0 || cont == 1,
+				"CAN_CONTINUE argument can be either 0 or 1");
 
 			asswrite(fd, &op, sizeof(op));
 			asswrite(fd, &cont, sizeof(int));
