@@ -39,7 +39,7 @@
  */
 void
 wit_client_add_listener(struct wit_client *cl, const char *interface,
-			void *listener)
+			const void *listener)
 {
 	assertf(cl);
 	assert(interface);
