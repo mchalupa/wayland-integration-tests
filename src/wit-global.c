@@ -50,7 +50,7 @@ void
 send_message(int fd, enum optype op, ...)
 {
 	va_list vl;
-	int stat, cont, count;
+	int cont, count;
 
 	/* enum optype is defined from 1 */
 	assertf(op > 0, "Wrong operation");
@@ -62,7 +62,8 @@ send_message(int fd, enum optype op, ...)
 		case CAN_CONTINUE:
 			cont = va_arg(vl, int);
 			assertf(cont == 0 || cont == 1,
-				"CAN_CONTINUE argument can be either 0 or 1");
+				"CAN_CONTINUE argument can be either 0 or 1"
+				" (is %d)", cont);
 
 			asswrite(fd, &op, sizeof(op));
 			asswrite(fd, &cont, sizeof(int));
@@ -72,6 +73,9 @@ send_message(int fd, enum optype op, ...)
 			break;
 		case EVENT_COUNT:
 			count = va_arg(vl, int);
+			assertf(count >= 0,
+				"EVENT_COUNT argument must be positive (%d)",
+				count);
 
 			asswrite(fd, &op, sizeof(op));
 			asswrite(fd, &count, sizeof(int));
