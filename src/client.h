@@ -31,6 +31,9 @@ struct wit_client {
 
 	/* set value 1 here, when client asked for emitting events */
 	int emitting;
+
+	/* data for user's arbitrary use */
+	void *data;
 };
 
 struct wit_client *
