@@ -128,7 +128,7 @@ wit_eventarray_emit_one(struct wit_display *d, struct wit_eventarray *ea)
 	else if (e->event.interface == &wl_touch_interface)
 		resource = d->resources.touch;
 	else if (e->event.interface == &wl_surface_interface)
-		resource = d->resources.surface;
+		resource = (struct wl_resource *) e->args[0].o;
 	else
 		assertf(0, "Unsupported interface");
 
