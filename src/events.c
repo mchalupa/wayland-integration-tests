@@ -32,6 +32,10 @@
 struct event {
 	struct wit_event event;
 	union wl_argument args[MAX_ARGS_NO];
+
+	/* if we are sending the event via socket, we need to know
+	 * the arguments' size */
+	size_t args_size[MAX_ARGS_NO];
 };
 
 unsigned int
