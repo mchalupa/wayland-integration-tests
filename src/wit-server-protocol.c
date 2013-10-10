@@ -186,6 +186,9 @@ static void compositor_handle_create_surface(struct wl_client *client,
 	s->id = id;
 
 	wl_list_insert(d->surfaces.next, &s->link);
+
+	/* set it as last surface created */
+	d->resources.surface = res;
 }
 
 /**

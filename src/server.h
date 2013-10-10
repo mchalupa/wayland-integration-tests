@@ -36,7 +36,7 @@ struct wit_display {
 		struct wl_resource *keyboard;
 		struct wl_resource *touch;
 		struct wl_resource *shm;
-		struct wl_resource *surface;
+		struct wl_resource *surface; /* last resource created */
 	} resources;
 
 	/* list of wit_surfaces */
