@@ -36,6 +36,10 @@ struct event {
 	/* if we are sending the event via socket, we need to know
 	 * the arguments' size */
 	size_t args_size[MAX_ARGS_NO];
+
+	/* we wouldn't need this one, but it's simpler than go through signature
+	 * again (when sending) */
+	int args_no;
 };
 
 unsigned int
