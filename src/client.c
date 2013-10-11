@@ -190,18 +190,24 @@ kick_display(void)
 		"Failed sending SIGUSR1 signal to display");
 }
 
+static inline void
+get_acknowledge(int fd, enum optype op)
+{
+	enum optype acknop;
+
+	assread(fd, &acknop, sizeof(op));
+	assertf(op == acknop, "Got bad acknowledge (%d instead of %d)", op,
+		acknop);
+}
+
 void
 wit_client_call_user_func(struct wit_client *cl)
 {
-	enum optype op;
-
 	dbg("Request for user func\n");
 
 	kick_display();
 	send_message(cl->sock, RUN_FUNC);
-	assread(cl->sock, &op, sizeof(op));
-	assertf(op == RUN_FUNC, "Got bad acknowledge (%d instead of %d)", op,
-		RUN_FUNC);
+	get_acknowledge(cl->sock, RUN_FUNC);
 
 	dbg("run_func got ackn\n");
 }
@@ -209,17 +215,13 @@ wit_client_call_user_func(struct wit_client *cl)
 void
 wit_client_send_data(struct wit_client *cl, void *src, size_t size)
 {
-	enum optype op;
 	size_t got_size;
 
 	dbg("Sending data to display\n");
 
 	kick_display();
 	send_message(cl->sock, SEND_BYTES, src, size);
-
-	assread(cl->sock, &op, sizeof(op));
-	assertf(op == SEND_BYTES, "Got bad acknowledge (%d instead of %d)", op,
-		SEND_BYTES);
+	get_acknowledge(cl->sock, SEND_BYTES);
 
 	assread(cl->sock, &got_size, sizeof(size_t));
 	assertf(got_size == size, "Display replied that it got different number of bytes"
@@ -230,20 +232,16 @@ int
 wit_client_ask_for_events(struct wit_client *cl, int n)
 {
 	int count;
-	enum optype op;
 
 	dbg("Request for events(%p, %d)\n", cl, n);
 
 	kick_display();
 	send_message(cl->sock, EVENT_COUNT, n);
-
-	cl->emitting = 1;
-
-	assread(cl->sock, &op, sizeof(op));
-	assertf(op == EVENT_COUNT, "Got bad acknowledge (%d instead of %d)", op,
-		EVENT_COUNT);
+	get_acknowledge(cl->sock, EVENT_COUNT);
 
 	assread(cl->sock, &count, sizeof(count));
+
+	cl->emitting = 1;
 
 	return count;
 }
@@ -252,13 +250,9 @@ wit_client_ask_for_events(struct wit_client *cl, int n)
 void
 wit_client_barrier(struct wit_client *cl)
 {
-	enum optype op;
-
 	kick_display();
 	send_message(cl->sock, BARRIER);
-
-	/* wait for display's barrier call */
-	assread(cl->sock, &op, sizeof(op));
+	get_acknowledge(cl->sock, BARRIER);
 
 	dbg("Barrier: client synced\n");
 }
