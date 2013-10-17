@@ -5,6 +5,7 @@
 #include <wit-global.h>
 
 struct wit_display;
+struct wit_client;
 
 #define MAX_ARGS_NO 15
 #define MAX_EVENTS 100
@@ -58,6 +59,12 @@ wit_eventarray_emit_one(struct wit_display *d, struct wit_eventarray *ea);
 
 int
 wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b);
+
+struct wit_eventarray *
+wit_eventarray_recieve(struct wit_display *d);
+
+void
+wit_eventarray_send(struct wit_client *c, struct wit_eventarray *ea);
 
 void
 wit_eventarray_free(struct wit_eventarray *ea);

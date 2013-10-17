@@ -539,6 +539,46 @@ recieve_event(struct wit_display *d)
 	return e;
 }
 
+
+void
+wit_eventarray_send(struct wit_client *c, struct wit_eventarray *ea)
+{
+	assert(c);
+	assert(ea);
+
+	unsigned i;
+	dbg("Sending skeleton\n");
+	asswrite(c->sock, ea, sizeof(struct wit_eventarray));
+
+	for (i = 0; i < ea->count; i++) {
+		dbg("Sending %dth event\n", i);
+		send_event(c, ea->events[i]);
+	}
+}
+
+
+struct wit_eventarray *
+wit_eventarray_recieve(struct wit_display *d)
+{
+	unsigned int i;
+
+	struct wit_eventarray *ea = malloc(sizeof(struct wit_eventarray));
+	assert(ea && "Out of memory");
+
+	dbg("Will read skeleton\n");
+	/* skeleton */
+	assread(d->client_sock[1], ea, sizeof(struct wit_eventarray));
+	dbg("Read skeleton\n");
+
+	for (i = 0; i < ea->count; i++) {
+		dbg("Recieved %dth event\n", i);
+		ea->events[i] = recieve_event(d);
+	}
+
+	return ea;
+}
+
+
 static void
 free_event_args(struct event *e)
 {
