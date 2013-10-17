@@ -316,3 +316,50 @@ TEST(send_eventarray_basic_events_tst)
 	wit_eventarray_free(ea);
 	wit_display_destroy(d);
 }
+
+
+static void
+pointer_handle_button(void *data, struct wl_pointer *pointer, uint32_t serial,
+		      uint32_t time, uint32_t button, uint32_t state)
+{
+	assert(data);
+	assert(pointer);
+	assert(serial == 0xbee);
+	assert(time == 0xdead);
+	assert(button == 0);
+	assert(state == 1);
+
+	struct wit_client *c = data;
+	c->data = (void *) 0xb00;
+}
+
+static const struct wl_pointer_listener pointer_listener = {
+	.button = pointer_handle_button,
+};
+
+static int
+send_one_event_main(int sock)
+{
+	struct wit_client *c = wit_client_populate(sock);
+	wit_client_add_listener(c, "wl_pointer", (void *) &pointer_listener);
+
+	WIT_EVENT_DEFINE(pointer_button, &wl_pointer_interface, WL_POINTER_BUTTON);
+	wit_client_trigger_event(c, pointer_button, 0xbee, 0xdead, 0, 1);
+	wl_display_dispatch(c->display);
+
+	assert(c->data == (void *) 0xb00);
+
+	wit_client_free(c);
+	return EXIT_SUCCESS;
+}
+
+TEST(send_one_event_tst)
+{
+	struct wit_display *d = wit_display_create(NULL);
+	wit_display_create_client(d, send_one_event_main);
+
+	wit_display_run(d);
+	wit_display_event_emit(d);
+
+	wit_display_destroy(d);
+}
