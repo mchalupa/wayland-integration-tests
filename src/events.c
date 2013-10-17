@@ -328,5 +328,11 @@ wit_eventarray_free(struct wit_eventarray *ea)
 	for (i = 0; i < ea->count; i++)
 		free(ea->events[i]);
 
-	ea->count = ea->index = 0;
+struct wit_eventarray *
+wit_eventarray_create()
+{
+	struct wit_eventarray *ea = calloc(1, sizeof(struct wit_eventarray));
+	assert(ea && "Out of memory");
+
+	return ea;
 }
