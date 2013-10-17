@@ -2,6 +2,7 @@
 #define __WIT_EVENTS_H__
 
 #include <wayland-util.h>
+#include <wit-global.h>
 
 struct wit_display;
 
@@ -47,8 +48,12 @@ struct wit_eventarray {
 	static struct wit_eventarray __wit_eventarray_##name##_ = {{0}, 0, 0};	\
 	struct wit_eventarray *(name) = &__wit_eventarray_##name##_;
 
+/*
+ * side = {CLIENT|DISPLAY}
+ */
 unsigned int
-wit_eventarray_add(struct wit_eventarray *ea, const struct wit_event *event, ...);
+wit_eventarray_add(struct wit_eventarray *ea, enum side side,
+			const struct wit_event *event, ...);
 
 int
 wit_eventarray_emit_one(struct wit_display *d, struct wit_eventarray *ea);

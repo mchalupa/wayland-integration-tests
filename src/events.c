@@ -27,6 +27,8 @@
 #include "events.h"
 #include "wit-assert.h"
 #include "server.h"
+#include "client.h"
+#include "wit-global.h"
 
 /* structure for inner use by wit_eventarray */
 struct event {
@@ -42,8 +44,14 @@ struct event {
 	int args_no;
 };
 
+/**
+ * Serves the client to create evenets and then ask to display to emit them
+ * When this function is used on display side, side argument has to be set to
+ * DISPLAY
+ */
 unsigned int
-wit_eventarray_add(struct wit_eventarray *ea, const struct wit_event *event, ...)
+wit_eventarray_add(struct wit_eventarray *ea, enum side side,
+		   const struct wit_event *event, ...)
 {
 
 	assertf(ea, "wit_eventarray is NULL");
