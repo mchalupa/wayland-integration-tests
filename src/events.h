@@ -54,6 +54,10 @@ unsigned int
 wit_eventarray_add(struct wit_eventarray *ea, enum side side,
 			const struct wit_event *event, ...);
 
+unsigned int
+wit_eventarray_add_vl(struct wit_eventarray *ea, enum side side,
+		   const struct wit_event *event, va_list vl);
+
 int
 wit_eventarray_emit_one(struct wit_display *d, struct wit_eventarray *ea);
 

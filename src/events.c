@@ -44,14 +44,9 @@ struct event {
 	int args_no;
 };
 
-/**
- * Serves the client to create evenets and then ask to display to emit them
- * When this function is used on display side, side argument has to be set to
- * DISPLAY
- */
 unsigned int
-wit_eventarray_add(struct wit_eventarray *ea, enum side side,
-		   const struct wit_event *event, ...)
+wit_eventarray_add_vl(struct wit_eventarray *ea, enum side side,
+		   const struct wit_event *event, va_list vl)
 {
 
 	assertf(ea, "wit_eventarray is NULL");
@@ -63,7 +58,6 @@ wit_eventarray_add(struct wit_eventarray *ea, enum side side,
 		"Event opcode is illegal (%d for %s)",
 		event->opcode, event->interface->name);
 
-	va_list vl;
 	int index = 0;
 	int i = 0;
 	const char *tmp;
@@ -82,7 +76,6 @@ wit_eventarray_add(struct wit_eventarray *ea, enum side side,
 	e->event = *event;
 
 	/* copy arguments */
-	va_start(vl, event);
 	while(signature[i]) {
 		assertf(index < MAX_ARGS_NO , "Too much arguments (wit issue, not wayland)");
 
@@ -154,7 +147,6 @@ wit_eventarray_add(struct wit_eventarray *ea, enum side side,
 		}
 		i++;
 	}
-	va_end(vl);
 
 	/* save how many arguments event has */
 	e->args_no = index;
@@ -163,6 +155,25 @@ wit_eventarray_add(struct wit_eventarray *ea, enum side side,
 	ea->count++;
 
 	return ea->count;
+}
+
+/**
+ * Serves the client to create evenets and then ask to display to emit them
+ * When this function is used on display side, side argument has to be set to
+ * DISPLAY
+ */
+unsigned int
+wit_eventarray_add(struct wit_eventarray *ea, enum side side,
+		   const struct wit_event *event, ...)
+{
+	va_list vl;
+	int stat;
+
+	va_start(vl, event);
+	stat = wit_eventarray_add_vl(ea, side, event, vl);
+	va_end(vl);
+
+	return stat;
 }
 
 /* return pointer to the next type in the signature */
