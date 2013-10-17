@@ -237,6 +237,27 @@ wit_client_send_eventarray(struct wit_client *cl, struct wit_eventarray *ea)
 }
 
 void
+wit_client_trigger_event(struct wit_client *cl, struct wit_event *e, ...)
+{
+	va_list vl;
+	struct wit_eventarray *ea;
+
+	dbg("Sending event to display\n");
+
+	va_start(vl, e);
+	ea = wit_eventarray_create();
+	wit_eventarray_add_vl(ea, CLIENT, e, vl);
+	va_end(vl);
+
+	kick_display();
+	send_message(cl->sock, EVENT_EMIT);
+	wit_eventarray_send(cl, ea);
+	get_acknowledge(cl->sock, EVENT_EMIT);
+
+	wit_eventarray_free(ea);
+}
+
+void
 wit_client_send_data(struct wit_client *cl, void *src, size_t size)
 {
 	size_t got_size;

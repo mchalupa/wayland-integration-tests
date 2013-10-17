@@ -1,6 +1,8 @@
 #ifndef __WIT_CLIENT_H__
 #define __WIT_CLIENT_H__
 
+#include "events.h"
+
 /*
  * Allow saving object along with some helper data and object's listener
  */
@@ -58,6 +60,9 @@ wit_client_send_data(struct wit_client *cl, void *src, size_t size);
  */
 void
 wit_client_send_eventarray(struct wit_client *cl, struct wit_eventarray *ea);
+
+void
+wit_client_trigger_event(struct wit_client *cl, struct wit_event *e, ...);
 
 void
 wit_client_add_listener(struct wit_client *cl, const char *interface,
