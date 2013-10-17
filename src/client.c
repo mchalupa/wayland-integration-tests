@@ -32,6 +32,7 @@
 #include "wit-global.h"
 #include "wit-assert.h"
 #include "client.h"
+#include "events.h"
 
 
 /*
@@ -210,6 +211,29 @@ wit_client_call_user_func(struct wit_client *cl)
 	get_acknowledge(cl->sock, RUN_FUNC);
 
 	dbg("run_func got ackn\n");
+}
+
+void
+wit_client_send_eventarray(struct wit_client *cl, struct wit_eventarray *ea)
+{
+	unsigned count;
+
+	dbg("Sending eventarray to display\n");
+
+	kick_display();
+	dbg("Kicked display\n");
+	/* say display that you will send eventarray */
+	//send_message(cl->sock, SEND_EVENTARRAY);
+
+	wit_eventarray_send(cl, ea);
+
+	get_acknowledge(cl->sock, SEND_EVENTARRAY);
+
+	/* XXX do it in separate function as well
+	 * rest of arguments */
+	assread(cl->sock, &count, sizeof(unsigned));
+	assertf(count == ea->count, "Display replied that it got different number of events"
+		" (%u and %u)", count, ea->count);
 }
 
 void
