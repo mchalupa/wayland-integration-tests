@@ -99,4 +99,11 @@ wit_display_add_events(struct wit_display *d, struct wit_eventarray *e);
  */
 void
 wit_display_process_request(struct wit_display *d);
+
+
+/**
+ * Recive eventarray from client. It will be saved into d->events
+ */
+void
+wit_display_recieve_eventarray(struct wit_display *d);
 #endif /* __WIT_SERVER_H__ */

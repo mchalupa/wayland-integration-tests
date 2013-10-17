@@ -444,6 +444,27 @@ wit_display_add_events(struct wit_display *d, struct wit_eventarray *e)
 	d->events = e;
 }
 
+void
+wit_display_recieve_eventarray(struct wit_display *d)
+{
+	dbg("Recieving eventarray\n");
+
+	ifdbg(d->events, "Overwriting events\n");
+
+	enum optype op = SEND_EVENTARRAY;
+	struct wit_eventarray *ea = wit_eventarray_recieve(d);
+	dbg("Eventarray recieved\n");
+
+	/* acknowledge */
+	asswrite(d->client_sock[1], &op, sizeof(op));
+	asswrite(d->client_sock[1], &ea->count, sizeof(unsigned));
+
+	d->events = ea;
+
+	/* continue working */
+	wl_display_run(d->display);
+}
+
 /*
  * Wayland bindings
  */
