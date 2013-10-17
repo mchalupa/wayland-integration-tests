@@ -76,8 +76,8 @@ TEST(eventarray_init_tst)
 
 	/* tea = test event array, but you probably know what I was drinking
 	 * at the moment :) */
-	WIT_EVENTARRAY_DEFINE(tea);
-	WIT_EVENTARRAY_DEFINE(teabag);
+	struct wit_eventarray *tea = wit_eventarray_create();
+	struct wit_eventarray *teabag = wit_eventarray_create();
 
 	for (i = 0; i < MAX_EVENTS; i++) {
 		assertf(tea->events[i] == 0, "Field no. %d is not inizialized", i);
@@ -87,35 +87,39 @@ TEST(eventarray_init_tst)
 
 	assertf(tea->count == 0, "Count not initialized");
 	assertf(tea->index == 0, "Index not initialized");
+
+	wit_eventarray_free(tea);
+	wit_eventarray_free(teabag);
 }
 
 FAIL_TEST(eventarray_add_wrong_event_tst)
 {
-	WIT_EVENTARRAY_DEFINE(tea);
-	wit_eventarray_add(tea, NULL);
+	struct wit_eventarray *tea = wit_eventarray_create();
+	wit_eventarray_add(tea, 0, NULL);
+	wit_eventarray_free(tea);
 }
 
 FAIL_TEST(eventarray_add_wrong_ea_tst)
 {
 	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_MOTION);
-	wit_eventarray_add(NULL, e);
+	wit_eventarray_add(NULL, 0, e);
 }
 
 TEST(eventarray_add_tst)
 {
 	unsigned count = -1;
 
-	WIT_EVENTARRAY_DEFINE(tea);
+	struct wit_eventarray *tea = wit_eventarray_create();
 	WIT_EVENT_DEFINE(key, &wl_keyboard_interface, WL_KEYBOARD_KEY);
 
-	count = wit_eventarray_add(tea, key, 0, 0, 0, 0);
+	count = wit_eventarray_add(tea, DISPLAY, key, 0, 0, 0, 0);
 	assertf(tea->count == 1, "Count not increased");
 	assertf(tea->count == count, "Count returned wrong count");
 	assertf(tea->index == 0, "Index should have not been increased");
 	assertf(tea->events[0] != NULL, "Event not saved");
 	assertf(tea->events[1] == NULL, "Wrong memory state");
 
-	count = wit_eventarray_add(tea, key, 1, 1, 1, 1);
+	count = wit_eventarray_add(tea, DISPLAY, key, 1, 1, 1, 1);
 	assertf(tea->count == 2, "Count not increased");
 	assertf(tea->count == count, "Count returned wrong count");
 	assertf(tea->index == 0, "Index should have not been increased");
@@ -146,14 +150,16 @@ eventarray_emit_main(int sock)
 	wit_client_ask_for_events(c, 0);
 
 	wl_display_roundtrip(c->display);
+	assert(strcmp(c->seat.data, "Cool name") == 0);
 
+	wl_surface_destroy(surface);
 	wit_client_free(c);
 	return EXIT_SUCCESS;
 }
 
 TEST(eventarray_emit_tst)
 {
-	WIT_EVENTARRAY_DEFINE(tea);
+	struct wit_eventarray *tea = wit_eventarray_create();
 
 	struct wit_display *d = wit_display_create(NULL);
 	wit_display_create_client(d, eventarray_emit_main);
@@ -161,10 +167,11 @@ TEST(eventarray_emit_tst)
 
 	wit_display_run(d);
 
-	wit_eventarray_add(tea, &touch_e);
-	wit_eventarray_add(tea, &pointer_e, 0, 0, 0, 0);
-	wit_eventarray_add(tea, &keyboard_e, 0, 0, 0, 0);
-	wit_eventarray_add(tea, &seat_e, "Cool name");
+	/* just test if we won't get SIGSEGV because of bad resource */
+	wit_eventarray_add(tea, DISPLAY, &touch_e);
+	wit_eventarray_add(tea, DISPLAY, &pointer_e, 0, 0, 0, 0);
+	wit_eventarray_add(tea, DISPLAY, &keyboard_e, 0, 0, 0, 0);
+	wit_eventarray_add(tea, DISPLAY, &seat_e, "Cool name");
 
 	assert(tea->count == 4 && tea->index == 0);
 
@@ -175,21 +182,20 @@ TEST(eventarray_emit_tst)
 	assertf(tea->index == 4, "Index is set wrong (%d)", tea->index);
 
 	/* how many resources we tested?
-	 * it's just for me.. */
-	int resources_tst = tea->count + 1; /* +1 = compositor doesn't have events */
+	 * it's just for me..
+	int resources_tst = tea->count + 1; // +1 = compositor doesn't have events
 	int resources_no = sizeof(d->resources) / sizeof(struct wl_resource *);
 
 	assertf(resources_tst == resources_no, "Missing tests for new resources");
+	*/
 
-
-	wit_eventarray_free(tea);
 	wit_display_destroy(d);
 }
 
 TEST(eventarray_compare_tst)
 {
-	WIT_EVENTARRAY_DEFINE(e1);
-	WIT_EVENTARRAY_DEFINE(e2);
+	struct wit_eventarray *e1 = wit_eventarray_create();
+	struct wit_eventarray *e2 = wit_eventarray_create();
 	WIT_EVENT_DEFINE(pointer_motion, &wl_pointer_interface, WL_POINTER_MOTION);
 	WIT_EVENT_DEFINE(seat_caps, &wl_seat_interface, WL_SEAT_CAPABILITIES);
 
@@ -199,22 +205,22 @@ TEST(eventarray_compare_tst)
 		&& wit_eventarray_compare(e2, e1) == 0,
 		"Empty eventarrays are not equal");
 
-	wit_eventarray_add(e1, pointer_motion, 1, 2, 3, 4);
-	wit_eventarray_add(e2, pointer_motion, 1, 2, 3, 4);
+	wit_eventarray_add(e1, DISPLAY, pointer_motion, 1, 2, 3, 4);
+	wit_eventarray_add(e2, DISPLAY, pointer_motion, 1, 2, 3, 4);
 	assertf(wit_eventarray_compare(e1, e2) == 0);
 
-	wit_eventarray_add(e1, seat_caps, 4);
+	wit_eventarray_add(e1, DISPLAY, seat_caps, 4);
 	assertf(wit_eventarray_compare(e1, e2) != 0);
 	assertf(wit_eventarray_compare(e2, e1) != 0);
 
-	wit_eventarray_add(e2, seat_caps, 4);
+	wit_eventarray_add(e2, DISPLAY, seat_caps, 4);
 	assertf(wit_eventarray_compare(e2, e1) == 0);
 	assertf(wit_eventarray_compare(e1, e2) == 0);
 
-	wit_eventarray_add(e2, pointer_motion,  0, 0, 0);
+	wit_eventarray_add(e2, DISPLAY, pointer_motion,  0, 0, 0);
 	assertf(wit_eventarray_compare(e1, e2) != 0);
 
-	wit_eventarray_add(e1, pointer_motion,  0, 0, 0);
+	wit_eventarray_add(e1, DISPLAY, pointer_motion,  0, 0, 0);
 	assertf(wit_eventarray_compare(e1, e2) == 0);
 
 	assertf(wit_eventarray_compare(e1, e1) == 0);
@@ -222,4 +228,91 @@ TEST(eventarray_compare_tst)
 
 	wit_eventarray_free(e1);
 	wit_eventarray_free(e2);
+}
+
+/* test adding arguments which are dynamically allocated:
+ * string and array */
+TEST(ea_add_dynamic)
+{
+
+	WIT_EVENT_DEFINE(seat_name, &wl_seat_interface, WL_SEAT_NAME);
+	WIT_EVENT_DEFINE(keyboard_enter, &wl_keyboard_interface, WL_KEYBOARD_ENTER);
+
+	/* try string */
+	struct wit_eventarray *ea = wit_eventarray_create();
+	wit_eventarray_add(ea, DISPLAY, seat_name, "Cool name");
+	/* test-runner will assert on leaked memory */
+	wit_eventarray_free(ea);
+
+	/* try array */
+	ea = wit_eventarray_create();
+
+	/* I need a proxy for keyboard enter */
+	struct wit_config conf = {0,0,0};
+	struct wit_display *d = wit_display_create(&conf);
+
+	struct wl_array a;
+	wl_array_init(&a);
+	wl_array_add(&a, 10);
+	strcpy(a.data, "Cool array");
+
+	wit_eventarray_add(ea, DISPLAY, keyboard_enter,
+			   0x5e41a1, d->display, &a);
+
+	wit_eventarray_free(ea);
+
+	/* try both */
+	ea = wit_eventarray_create();
+
+	wit_eventarray_add(ea, DISPLAY, seat_name, "Cool name");
+	wit_eventarray_add(ea, DISPLAY, keyboard_enter, 0x5e41a1, d->display, &a);
+
+	wit_display_destroy(d);
+	wl_array_release(&a);
+	wit_eventarray_free(ea);
+}
+
+
+/* test events which don't allocate it's own memory */
+static int
+send_ea_basic_main(int sock)
+{
+	struct wit_client *c = wit_client_populate(sock);
+	struct wit_eventarray *ea = wit_eventarray_create();
+
+	/* try events with arguments: uint32_t, int32_t, wl_fixed_t and
+	 * object (it will be send as id */
+	WIT_EVENT_DEFINE(touch_motion, &wl_touch_interface, WL_TOUCH_MOTION);
+
+	wit_eventarray_add(ea, CLIENT, touch_motion, 0x0131, -5,
+			   wl_fixed_from_int(45), wl_fixed_from_double(2.74));
+
+	wit_client_send_eventarray(c, ea);
+
+	wit_eventarray_free(ea);
+	wit_client_free(c);
+
+	return EXIT_SUCCESS;
+}
+
+TEST(send_eventarray_basic_events_tst)
+{
+	struct wit_eventarray *ea = wit_eventarray_create();
+	struct wit_display *d = wit_display_create(NULL);
+
+	wit_display_create_client(d, send_ea_basic_main);
+	wit_display_run(d);
+
+	wit_display_recieve_eventarray(d);
+	assert(d->events);
+
+	WIT_EVENT_DEFINE(touch_motion, &wl_touch_interface, WL_TOUCH_MOTION);
+
+	wit_eventarray_add(ea, DISPLAY, touch_motion, 0x0131, -5,
+			   wl_fixed_from_int(45), wl_fixed_from_double(2.74));
+
+	assert(wit_eventarray_compare(d->events, ea) == 0);
+
+	wit_eventarray_free(ea);
+	wit_display_destroy(d);
 }
