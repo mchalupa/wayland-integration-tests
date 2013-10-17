@@ -21,6 +21,9 @@ enum optype {
 	/* arguments: size_t size, void *mem */
 	SEND_BYTES,		/* send raw bytestream to the other side */
 
+	/* arguments: unsigned count */
+	SEND_EVENTARRAY,	/* send eventarray, used only for acknowledge */
+
 	/* arguments: none */
 	BARRIER,		/* sync client with display */
 };
