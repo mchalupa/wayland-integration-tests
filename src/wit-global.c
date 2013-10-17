@@ -96,6 +96,10 @@ send_message(int fd, enum optype op, ...)
 			asswrite(fd, &size, sizeof(size_t));
 			asswrite(fd, mem, size);
 			break;
+		case SEND_EVENTARRAY:
+			assertf(0, "Use wit_display_recieve_eventarray() "
+				"and wit_client_send_eventarray() instead");
+			break;
 		case EVENT_EMIT:
 			assertf(0, "Not implemented");
 		default:

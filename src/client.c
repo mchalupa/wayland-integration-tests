@@ -183,7 +183,7 @@ wit_client_free(struct wit_client *c)
 	free(c);
 }
 
-static void
+static inline void
 kick_display(void)
 {
 	int stat = kill(getppid(), SIGUSR1);
