@@ -185,6 +185,9 @@ wit_display_process_request(struct wit_display *disp)
 			asswrite(fd, &op, sizeof(op));
 			asswrite(fd, &size, sizeof(size_t));
 			break;
+		case SEND_EVENTARRAY:
+			assertf(0, "Use wit_display_recieve_eventarray() instead");
+			break;
 		default:
 			assertf(0, "Unknown operation");
 	}
