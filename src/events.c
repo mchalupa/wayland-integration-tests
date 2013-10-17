@@ -281,11 +281,14 @@ print_bytes(void *src, int n)
 	assert(n < 250 && "Asking for too much bytes");
 
 	char *str = calloc(1, 1000);
+	assert(str && "Out of memory");
+
 	int i = 0, printed = 0, cur_pos = 0;
 	char *pos = str;
 
 	while (i < n) {
-		sprintf(pos + cur_pos, "%#x%n ", *((char *) src + n - i - 1), &printed);
+		sprintf(pos + cur_pos, "%#x%n ", *((char *) src + n - i - 1),
+			&printed);
 		i++;
 		cur_pos += printed + 1;
 
