@@ -454,24 +454,6 @@ wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b)
 	return nok;
 }
 
-void
-wit_eventarray_free(struct wit_eventarray *ea)
-{
-	unsigned i;
-
-	assert(ea);
-
-	for (i = 0; i < ea->count; i++)
-		free(ea->events[i]);
-
-struct wit_eventarray *
-wit_eventarray_create()
-{
-	struct wit_eventarray *ea = calloc(1, sizeof(struct wit_eventarray));
-	assert(ea && "Out of memory");
-
-	return ea;
-}
 
 /*
  * send event from client side to display
@@ -555,4 +537,51 @@ recieve_event(struct wit_display *d)
 	}
 
 	return e;
+}
+
+static void
+free_event_args(struct event *e)
+{
+	int i;
+	const char *sig =
+		e->event.interface->events[e->event.opcode].signature;
+	assert(sig);
+
+	for (i = 0; i < e->args_no; i++) {
+		sig = get_next_signature(sig);
+
+		if (*sig == 's') {
+			free((void *) e->args[i].s);
+		} else if (*sig == 'a') {
+			wl_array_release(e->args[i].a);
+			free(e->args[i].a);
+		}
+
+		sig++;
+	}
+}
+
+
+void
+wit_eventarray_free(struct wit_eventarray *ea)
+{
+	unsigned i;
+
+	assert(ea);
+
+	for (i = 0; i < ea->count; i++) {
+		free_event_args(ea->events[i]);
+		free(ea->events[i]);
+	}
+
+	free(ea);
+}
+
+struct wit_eventarray *
+wit_eventarray_create()
+{
+	struct wit_eventarray *ea = calloc(1, sizeof(struct wit_eventarray));
+	assert(ea && "Out of memory");
+
+	return ea;
 }
