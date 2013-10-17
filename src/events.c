@@ -66,6 +66,11 @@ wit_eventarray_add(struct wit_eventarray *ea, enum side side,
 	va_list vl;
 	int index = 0;
 	int i = 0;
+	const char *tmp;
+	struct wl_array *array, *tmp_array;
+	struct wl_proxy *proxy;
+	struct wl_resource *resource;
+
 	const char *signature
 			= event->interface->events[event->opcode].signature;
 	assert(signature);
@@ -81,42 +86,78 @@ wit_eventarray_add(struct wit_eventarray *ea, enum side side,
 	while(signature[i]) {
 		assertf(index < MAX_ARGS_NO , "Too much arguments (wit issue, not wayland)");
 
-		/* index = pointer to arguments array,
-		 * i = pointer to signature */
+		/* index = position in arguments array,
+		 *     i = position in signature */
 		switch(signature[i]) {
 			case 'i':
-				e->args[index++].i = va_arg(vl, int32_t);
+				e->args[index].i = va_arg(vl, int32_t);
+				e->args_size[index] = sizeof(int32_t);
+				index++;
 				break;
 			case 'u':
-				e->args[index++].u = va_arg(vl, uint32_t);
+				e->args[index].u = va_arg(vl, uint32_t);
+				e->args_size[index] = sizeof(uint32_t);
+				index++;
 				break;
 			case 'f':
-				e->args[index++].f = va_arg(vl, wl_fixed_t);
+				e->args[index].f = va_arg(vl, wl_fixed_t);
+				e->args_size[index] = sizeof(wl_fixed_t);
+				index++;
 				break;
 			case 's':
-				e->args[index++].s = va_arg(vl, const char *);
+				tmp = va_arg(vl, const char *);
+				assertf(tmp, "No string passed");
+				/* this one we'll need to send whole */
+				e->args_size[index] = strlen(tmp);
+
+				e->args[index].s = malloc(e->args_size[index] + 1);
+				assert(e->args[index].s && "Out of memory");
+				strcpy((char *) e->args[index].s, tmp);
+
+				index++;
 				break;
 			case 'n':
-				e->args[index++].n = va_arg(vl, uint32_t); /* struct wl_object * */
-				break;
 			case 'o':
-				e->args[index++].o = va_arg(vl, struct wl_object *);
+				/* save only object's id */
+				if (side == CLIENT) {
+					proxy = va_arg(vl, struct wl_proxy *);
+					e->args[index].n = wl_proxy_get_id(proxy);
+				} else {
+					resource = va_arg(vl, struct wl_resource *);
+					e->args[index].u = wl_resource_get_id(resource);
+				}
+
+				e->args_size[index] = sizeof(uint32_t);
+				index++;
 				break;
 			case 'a':
-				e->args[index++].a = va_arg(vl, struct wl_array *);
+				tmp_array = va_arg(vl, struct wl_array *);
+				assertf(tmp_array, "No array passed");
+
+				array = malloc(sizeof(struct wl_array));
+				assert(array && "Out of memory");
+				wl_array_init(array);
+
+				wl_array_copy(array, tmp_array);
+				e->args_size[index] = array->alloc;
+				e->args[index].a = array;
+
+				index++;
 				break;
 			case 'h':
 				e->args[index++].h = va_arg(vl, int32_t);
+				e->args_size[index] = sizeof(int32_t);
+				index++;
 				break;
-			/*
 			default:
-				assertf(0, "Ilegal character in signature ('%c')",
-					signature[index]);
-			*/
+				break;
 		}
 		i++;
 	}
 	va_end(vl);
+
+	/* save how many arguments event has */
+	e->args_no = index;
 
 	ea->events[ea->count] = e;
 	ea->count++;
