@@ -250,14 +250,19 @@ wit_eventarray_emit_one(struct wit_display *d, struct wit_eventarray *ea)
 	else if (e->event.interface == &wl_touch_interface)
 		resource = d->resources.touch;
 	else if (e->event.interface == &wl_surface_interface)
-		resource = (struct wl_resource *) e->args[0].o;
+		resource = wl_client_get_object(d->client, e->args[0].u);
 	else
 		assertf(0, "Unsupported interface");
 
 	assertf(resource, "Resource is not present in the display (%s)",
 		e->event.interface->name);
 
+
+	/* for post_event_array, we need objects, not ids */
+	convert_ids_to_objects(d, e);
 	wl_resource_post_event_array(resource, e->event.opcode, e->args);
+	/* and for later use (comparing etc.) it's good to have id again */
+	convert_objects_to_ids(e);
 	ea->index++;
 
 	/* return how many events left */
