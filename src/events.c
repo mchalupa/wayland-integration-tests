@@ -165,6 +165,71 @@ wit_eventarray_add(struct wit_eventarray *ea, enum side side,
 	return ea->count;
 }
 
+/* return pointer to the next type in the signature */
+/* (that means skip all non-type parts of signature */
+static const char *
+get_next_signature(const char *sig)
+{
+	while (*sig) {
+		switch(*sig) {
+			case 'i':
+			case 'u':
+			case 'f':
+			case 's':
+			case 'n':
+			case 'o':
+			case 'a':
+			case 'h':
+				return sig;
+			default:
+				sig++;
+		}
+	}
+
+	/* possible terminating zero */
+	return sig;
+}
+
+static void
+convert_ids_to_objects(struct wit_display *d, struct event *e)
+{
+	int i;
+	const char *signature
+			= e->event.interface->events[e->event.opcode].signature;
+
+	for(i = 0; i < e->args_no; i++) {
+		signature = get_next_signature(signature);
+		if (*signature == 'o') {
+			e->args[i].o =
+				(struct wl_object *) wl_client_get_object(d->client,
+									  e->args[i].u);
+			assertf(e->args[i].o, "No object like that");
+		}
+
+		signature++;
+	}
+}
+
+static void
+convert_objects_to_ids(struct event *e)
+{
+	int i;
+	const char *signature
+			= e->event.interface->events[e->event.opcode].signature;
+
+	for(i = 0; i < e->args_no; i++) {
+		signature = get_next_signature(signature);
+		if (*signature == 'o') {
+			e->args[i].o =
+				(struct wl_resource *)
+				wl_resource_get_id((struct wl_resource *) e->args[i].o);
+			assertf(e->args[i].o, "No object like that");
+		}
+
+		signature++;
+	}
+}
+
 int
 wit_eventarray_emit_one(struct wit_display *d, struct wit_eventarray *ea)
 {
