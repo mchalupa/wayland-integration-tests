@@ -357,7 +357,7 @@ compare_event_arguments(struct event *e1, struct event *e2, unsigned pos)
 
 	if (e1->args_no != e2->args_no) {
 	      dbg("Different number of arguments (%d and %d)\n",
-	      pos, e1->args_no, e2->args_no);
+	      e1->args_no, e2->args_no);
 	      nok = 1;
 	}
 
