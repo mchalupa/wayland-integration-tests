@@ -100,6 +100,12 @@ wit_display_add_events(struct wit_display *d, struct wit_eventarray *e);
 void
 wit_display_process_request(struct wit_display *d);
 
+/* create aliases of opcodes for better readability */
+#define wit_display_event_count		wit_display_process_request
+#define wit_display_event_emit		wit_display_process_request
+#define wit_display_run_function	wit_display_process_request
+#define wit_display_send_bytes		wit_display_process_request
+#define wit_display_barrier		wit_display_process_request
 
 /**
  * Recive eventarray from client. It will be saved into d->events
