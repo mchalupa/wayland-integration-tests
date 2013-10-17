@@ -231,9 +231,7 @@ convert_objects_to_ids(struct event *e)
 	for(i = 0; i < e->args_no; i++) {
 		signature = get_next_signature(signature);
 		if (*signature == 'o') {
-			e->args[i].o =
-				(struct wl_resource *)
-				wl_resource_get_id((struct wl_resource *) e->args[i].o);
+			e->args[i].u = wl_resource_get_id((void *) e->args[i].o);
 			assertf(e->args[i].o, "No object like that");
 		}
 
