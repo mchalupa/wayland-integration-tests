@@ -5,7 +5,6 @@
  * Definitions visible for both - server and client
  */
 
-
 enum optype {
 	/* arguments: int can (0 or 1)*/
 	CAN_CONTINUE = 1,	/* client can continue */
@@ -25,6 +24,12 @@ enum optype {
 	/* arguments: none */
 	BARRIER,		/* sync client with display */
 };
+
+enum side {
+	CLIENT = 0,
+	DISPLAY = 1
+};
+
 
 #include <wayland-client-protocol.h>
 const struct wl_registry_listener registry_default_listener;
