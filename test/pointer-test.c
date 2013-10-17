@@ -27,8 +27,6 @@
 #include "test-runner.h"
 #include "wit.h"
 
-static struct wit_eventarray events = {{0}, 0, 0};
-
 /* -----------------------------------------------------------------------------
     Pointer listener
    -------------------------------------------------------------------------- */
@@ -42,7 +40,7 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer, uint32_t serial,
 	struct wit_client *c = data;
 	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_ENTER);
 
-	wit_eventarray_add(c->events, e, serial, surface, surface_x, surface_y);
+	wit_eventarray_add(c->events, CLIENT, e, serial, surface, surface_x, surface_y);
 }
 
 static void
@@ -54,7 +52,7 @@ pointer_handle_leave(void *data, struct wl_pointer *pointer, uint32_t serial,
 	struct wit_client *c = data;
 	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_LEAVE);
 
-	wit_eventarray_add(c->events, e, serial, surface);
+	wit_eventarray_add(c->events, CLIENT, e, serial, surface);
 }
 
 static void
@@ -66,7 +64,7 @@ pointer_handle_motion(void *data, struct wl_pointer *pointer, uint32_t time,
 	struct wit_client *c = data;
 	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_MOTION);
 
-	wit_eventarray_add(c->events, e, time, x, y);
+	wit_eventarray_add(c->events, CLIENT, e, time, x, y);
 }
 
 static void
@@ -78,7 +76,7 @@ pointer_handle_button(void *data, struct wl_pointer *pointer, uint32_t serial,
 	struct wit_client *c = data;
 	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_BUTTON);
 
-	wit_eventarray_add(c->events, e, serial, time, button, state);
+	wit_eventarray_add(c->events, CLIENT, e, serial, time, button, state);
 }
 
 static void
@@ -90,7 +88,7 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer, uint32_t time,
 	struct wit_client *c = data;
 	WIT_EVENT_DEFINE(e, &wl_pointer_interface, WL_POINTER_AXIS);
 
-	wit_eventarray_add(c->events, e, time, axis, value);
+	wit_eventarray_add(c->events, CLIENT, e, time, axis, value);
 }
 
 static const struct wl_pointer_listener pointer_default_listener = {
@@ -104,23 +102,27 @@ static const struct wl_pointer_listener pointer_default_listener = {
 static int
 pointer_test_each_once_main(int sock)
 {
-	WIT_EVENTARRAY_DEFINE(recived_events);
-
+	struct wit_eventarray *recived_events = wit_eventarray_create();
 	struct wit_client *c = wit_client_populate(sock);
 	struct wl_surface *surface
 				= wl_compositor_create_surface(
 					(struct wl_compositor *) c->compositor.proxy);
 	assert(surface);
-	wl_display_roundtrip(c->display);
+	dbg("Created surface id %u\n",
+	    wl_proxy_get_id((struct wl_proxy *) surface));
 
 	wit_client_add_listener(c, "wl_pointer", &pointer_default_listener);
 	c->events = recived_events;
 
+	wl_display_roundtrip(c->display);
+	wit_client_barrier(c);
+
 	wit_client_ask_for_events(c, 0);
 	wl_display_roundtrip(c->display);
 
-	assert(wit_eventarray_compare(&events, c->events) == 0);
+	wit_client_send_eventarray(c, recived_events);
 
+	wit_eventarray_free(recived_events);
 	wl_surface_destroy(surface);
 	wit_client_free(c);
 	return EXIT_SUCCESS;
@@ -130,29 +132,38 @@ TEST(pointer_each_once_tst)
 {
 	struct wit_display *d = wit_display_create(NULL);
 
-	/* I'm lazy, use this one variable for all events (modify it manually) */
-	struct wit_event pointer_event = {&wl_pointer_interface, WL_POINTER_MOTION};
-
-	wit_eventarray_add(&events, &pointer_event, 3, 0, 0);
-	pointer_event.opcode = WL_POINTER_BUTTON;
-	wit_eventarray_add(&events, &pointer_event, 4, 4, 0, 0);
-	pointer_event.opcode = WL_POINTER_AXIS;
-	wit_eventarray_add(&events, &pointer_event, 5, 0, 0);
-
-	wit_display_add_events(d, &events);
+	/* this is one way how to use eventarray. Create it on both side
+	 * and then send it from client to server and compare.
+	 * The other way is to create it only in client, then send it
+	 * to display, let it to be emitted and compare with events that came */
+	struct wit_eventarray *events = wit_eventarray_create();
+	wit_display_add_events(d, events);
 	wit_display_create_client(d, pointer_test_each_once_main);
 	wit_display_run(d);
 
-/*
+	/* barrier, wait for client to create resource */
+	wit_display_process_request(d);
+
+	/* I'm lazy, use this one variable for all events (modify it manually) */
+	struct wit_event pointer_event = {&wl_pointer_interface, WL_POINTER_MOTION};
+
+	wit_eventarray_add(events, DISPLAY, &pointer_event, 3, 0, 0);
+	pointer_event.opcode = WL_POINTER_BUTTON;
+	wit_eventarray_add(events, DISPLAY, &pointer_event, 4, 4, 0, 0);
+	pointer_event.opcode = WL_POINTER_AXIS;
+	wit_eventarray_add(events, DISPLAY, &pointer_event, 5, 0, 0);
 	pointer_event.opcode = WL_POINTER_ENTER;
-	wit_eventarray_add(d->events, &pointer_event, 111, d->resources.surface, 0, 0);
+	wit_eventarray_add(d->events, DISPLAY, &pointer_event, 111,
+			  d->resources.surface, 0, 0);
 	pointer_event.opcode = WL_POINTER_LEAVE;
-	wit_eventarray_add(d->events, &pointer_event, 111, d->resources.surface);
-*/
+	wit_eventarray_add(d->events, DISPLAY, &pointer_event, 111, d->resources.surface);
 
 	/* client is calling for events*/
 	wit_display_process_request(d);
 
-	wit_eventarray_free(&events);
+	wit_display_recieve_eventarray(d);
+	assert(wit_eventarray_compare(d->events, events) == 0);
+
+	wit_eventarray_free(events);
 	wit_display_destroy(d);
 }
