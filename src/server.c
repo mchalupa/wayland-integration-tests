@@ -134,9 +134,11 @@ wit_display_process_request(struct wit_display *disp)
 	int stat, count, fd;
 	enum optype op;
 	size_t size;
+	struct wit_eventarray *ea;
 
 	assert(disp);
-	assertf(disp->request, "We do not have request signalized");
+	assertf(disp->request, "We do not have request signalized. "
+		"(It can mean that display is not running)");
 
 	fd = disp->client_sock[1];
 
@@ -145,6 +147,20 @@ wit_display_process_request(struct wit_display *disp)
 	switch(op) {
 		case CAN_CONTINUE:
 			assertf(0, "Got CAN_CONTINUE from child");
+			break;
+		case EVENT_EMIT:
+			dbg("Recieving event\n");
+			ea = wit_eventarray_recieve(disp);
+			assertf(ea->count == 1,
+				"Got more than one event");
+
+			dbg("Event recieved .. Emitting\n");
+			stat = wit_eventarray_emit_one(disp, ea);
+			assertf(stat == 0, "There should be only one event");
+			wit_eventarray_free(ea);
+
+			/* acknowledge */
+			send_message(fd, EVENT_EMIT, stat);
 			break;
 		case EVENT_COUNT:
 			assread(fd, &count, sizeof(count));
