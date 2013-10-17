@@ -472,3 +472,87 @@ wit_eventarray_create()
 
 	return ea;
 }
+
+/*
+ * send event from client side to display
+ */
+static void
+send_event(struct wit_client *c,  struct event *event)
+{
+	assert(event);
+
+	int i, fd;
+	void *mem;
+
+	const char *sig
+		= event->event.interface->events[event->event.opcode].signature;
+	fd = c->sock;
+
+	/* whole event */
+	asswrite(fd, event, sizeof(struct event));
+
+	/* arguments */
+	for (i = 0; i < event->args_no; i++) {
+		sig = get_next_signature(sig);
+
+		/* sending string or array */
+		if (*sig == 's') {
+			mem = (char *) event->args[i].s;
+			asswrite(fd, mem, event->args_size[i]);
+		} else if (*sig == 'a') {
+			mem = event->args[i].a->data;
+			/* send skeleton */
+			asswrite(fd, event->args[i].a, sizeof(struct wl_array));
+			/* send data */
+			asswrite(fd, mem, event->args_size[i]);
+		} else {
+			/* send it as it is */
+			asswrite(fd, &event->args[i], event->args_size[i]);
+		}
+		sig++;
+	}
+}
+
+
+static struct event *
+recieve_event(struct wit_display *d)
+{
+	int i, fd;
+	const char *sig = NULL;
+
+	fd = d->client_sock[1];
+
+	struct event *e = malloc(sizeof *e);
+	assert(e && "Out of memory");
+
+	/* recieve a skeleton */
+	assread(fd, e, sizeof(struct event));
+
+	sig = e->event.interface->events[e->event.opcode].signature;
+
+	/* recieve arguments */
+	for (i = 0; i < e->args_no; i++) {
+		sig = get_next_signature(sig);
+
+		if (*sig == 's') {
+			e->args[i].s = malloc(e->args_size[i]);
+			assert(e->args[i].s && "Out of memory");
+
+			assread(fd, (char *) &e->args[i].s, e->args_size[i]);
+		} else if (*sig == 'a') {
+			e->args[i].a = malloc(sizeof(struct wl_array));
+			assert(e->args[i].a && "Out of memory");
+			e->args[i].a->data = malloc(e->args_size[i]);
+			assert(e->args[i].a->data && "Out of memory");
+
+			assread(fd, e->args[i].a, sizeof(struct wl_array));
+			assread(fd, e->args[i].a->data, e->args_size[i]);
+		} else {
+			assread(fd, e->args + i, e->args_size[i]);
+		}
+
+		sig++;
+	}
+
+	return e;
+}
