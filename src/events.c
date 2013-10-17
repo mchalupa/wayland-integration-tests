@@ -299,40 +299,99 @@ print_bytes(void *src, int n)
 	return str;
 }
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
 static int
-compare_event_arguments(struct event *e1, struct event *e2, unsigned pos)
+compare_bytes(void *mem1, void *mem2, size_t size1, size_t size2)
 {
+	assert(mem1);
+	assert(mem2);
+	assert(size1 > 0);
+	assert(size2 > 0);
+
 	int nok = 0;
-	int i;
 	char *bytes1, *bytes2;
 
-	assert(e1);
-	assert(e2);
+	if (memcmp(mem1, mem2, MIN(size1, size2) != 0)) {
+		bytes1 = print_bytes(mem1, size1);
+		bytes2 = print_bytes(mem2, size2);
+		assert(bytes1 && bytes2);
 
-	for (i = 0; i < MAX_ARGS_NO; i++) {
-		if (memcmp(&e1->args[i], &e2->args[i], sizeof e1->args[i]) != 0) {
-			bytes1 = print_bytes(&e1->args[i], sizeof e1->args[i]);
-			bytes2 = print_bytes(&e2->args[i], sizeof e2->args[i]);
-			dbg("Event on position %d (%s): "
-				"different argument %d\n "
-				"Bytes: %s != %s\n"
-				"String: '%*s' != '%*s'\n",
-				pos, event_name_string(&e1->event), i,
-				bytes1, bytes2,
-				(int) sizeof(e1->args[i]), (char *) &e1->args[i],
-				(int) sizeof(e2->args[i]), (char *) &e2->args[i]);
+		dbg("Different bytes: %s != %s\n"
+		    "String: '%*s' != '%*s'\n",
+		    bytes1, bytes2,
+		    (int) size1, (char *) mem1,
+		    (int) size2, (char *) mem2);
 
-			free(bytes1);
-			free(bytes2);
-
-			nok = 1;
-		}
+		free(bytes1);
+		free(bytes2);
+		nok = 1;
 	}
+
+	/* TODO write extra bytes if size1 != size2 */
 
 	return nok;
 }
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
+static int
+compare_event_arguments(struct event *e1, struct event *e2, unsigned pos)
+{
+	int nok = 0;
+	int i, printed = 0;
+	struct wl_array *a1, *a2;
+	const char *sig;
+
+	assert(e1);
+	assert(e2);
+
+	sig = e1->event.interface->events[e1->event.opcode].signature;
+	assert(sig);
+
+	if (e1->args_no != e2->args_no) {
+	      dbg("Different number of arguments (%d and %d)\n",
+	      pos, e1->args_no, e2->args_no);
+	      nok = 1;
+	}
+
+	for (i = 0; i < MIN(e1->args_no, e2->args_no); i++) {
+		sig = get_next_signature(sig);
+
+		if (*sig == 'a') {
+			a1 = e1->args[i].a;
+			a2 = e2->args[i].a;
+			if (a1->size != a1->size) {
+			      dbg("Sizes of wl_array differs (%lu != %lu)\n",
+			      a1->size, a2->size);
+			      nok = 1;
+			}
+			if (a1->alloc != a2->alloc) {
+			      dbg("Arrays have different space allocated (%lu != %lu)",
+			      a1->alloc, a2->alloc);
+			      nok = 1;
+			}
+
+			if (compare_bytes(a1->data, a2->data, a1->size, a2->size)) {
+				nok = 1;
+			}
+		} else {
+			if (compare_bytes(&e1->args[i], &e2->args[i],
+				      e1->args_size[i], e2->args_size[i]))
+				nok = 1;
+		}
+
+		if (nok && !printed) {
+			dbg("Argument %d\n", i);
+			printed = 1;
+		}
+
+		sig++;
+	}
+
+	if (nok)
+		dbg("Event on position %u\n", pos);
+
+	return nok;
+}
+
 // compare two wit_eventarray and give out description if something differs
 int
 wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b)
@@ -360,13 +419,17 @@ wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b)
 		e1 = a->events[n];
 		e2 = b->events[n];
 
-		if (e1->event.interface != e2->event.interface)
-			dbg("Different interfaces on position %d: (%s and %s)\n", n,
-			    e1->event.interface->name, e2->event.interface->name);
+		if (e1->event.interface != e2->event.interface) {
+			dbg("Different interfaces on position %d: (%s and %s)\n",
+			n, e1->event.interface->name, e2->event.interface->name);
+			nok = 1;
+		}
 		if (e1->event.opcode != e2->event.opcode) {
 			dbg("Different event opcode on position %d: "
-			    "have %d (%s->%s) and %d (%s->%s)\n", n, e1->event.opcode, e1->event.interface->name,
-			    event_name_string(&e1->event), e2->event.opcode, e2->event.interface->name,
+			    "have %d (%s->%s) and %d (%s->%s)\n", n,
+			    e1->event.opcode, e1->event.interface->name,
+			    event_name_string(&e1->event), e2->event.opcode,
+			    e2->event.interface->name,
 			    event_name_string(&e2->event));
 			nok = 1;
 		} else if (compare_event_arguments(e1, e2, n) != 0)
