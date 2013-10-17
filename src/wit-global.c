@@ -70,7 +70,10 @@ send_message(int fd, enum optype op, ...)
 			asswrite(fd, &op, sizeof(op));
 			asswrite(fd, &cont, sizeof(int));
 			break;
+		case BARRIER:
 		case RUN_FUNC:
+		case EVENT_EMIT:
+			/* used only to kick and acknowledge */
 			asswrite(fd, &op, sizeof(op));
 			break;
 		case EVENT_COUNT:
@@ -81,9 +84,6 @@ send_message(int fd, enum optype op, ...)
 
 			asswrite(fd, &op, sizeof(op));
 			asswrite(fd, &count, sizeof(int));
-			break;
-		case BARRIER:
-			asswrite(fd, &op, sizeof(op));
 			break;
 		case SEND_BYTES:
 			mem = va_arg(vl, void *);
@@ -100,8 +100,6 @@ send_message(int fd, enum optype op, ...)
 			assertf(0, "Use wit_display_recieve_eventarray() "
 				"and wit_client_send_eventarray() instead");
 			break;
-		case EVENT_EMIT:
-			assertf(0, "Not implemented");
 		default:
 			assertf(0, "Unknown operation (%d)", op);
 	}
