@@ -533,11 +533,13 @@ recieve_event(struct wit_display *d)
 		} else if (*sig == 'a') {
 			e->args[i].a = malloc(sizeof(struct wl_array));
 			assert(e->args[i].a && "Out of memory");
-			e->args[i].a->data = malloc(e->args_size[i]);
-			assert(e->args[i].a->data && "Out of memory");
-
 			assread(fd, e->args[i].a, sizeof(struct wl_array));
-			assread(fd, e->args[i].a->data, e->args_size[i]);
+
+			if (e->args_size[i] > 0) {
+				e->args[i].a->data = malloc(e->args_size[i]);
+				assert(e->args[i].a->data && "Out of memory");
+				assread(fd, e->args[i].a->data, e->args_size[i]);
+			}
 		} else {
 			assread(fd, e->args + i, e->args_size[i]);
 		}
