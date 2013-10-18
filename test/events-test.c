@@ -363,3 +363,35 @@ TEST(send_one_event_tst)
 
 	wit_display_destroy(d);
 }
+
+static int
+send_one_event2_main(int sock)
+{
+	struct wl_compositor *comp;
+	struct wit_client *c = wit_client_populate(sock);
+	wit_client_add_listener(c, "wl_pointer", (void *) &pointer_listener);
+	comp = wl_compositor_create_surface(c->compositor.proxy);
+	wl_display_roundtrip(c->display);
+	assert(comp);
+
+	WIT_EVENT_DEFINE(pointer_enter, &wl_pointer_interface, WL_POINTER_ENTER);
+	wit_client_trigger_event(c, pointer_enter, 11, comp, 0, 0);
+	wl_display_dispatch(c->display);
+
+	assert(c->data == (void *) 0xb00);
+
+	wl_compositor_destroy(comp);
+	wit_client_free(c);
+	return EXIT_SUCCESS;
+}
+
+TEST(send_one_event2_tst)
+{
+	struct wit_display *d = wit_display_create(NULL);
+	wit_display_create_client(d, send_one_event2_main);
+
+	wit_display_run(d);
+	wit_display_event_emit(d);
+
+	wit_display_destroy(d);
+}
