@@ -87,7 +87,7 @@ seat_handle_caps(void *data, struct wl_seat *seat, enum wl_seat_capability caps)
 
 	/* block until synced, or client will end too early */
 	if (caps)
-		wl_display_roundtrip(cl->display);
+		wl_display_dispatch_pending(cl->display);
 
 	assertf(wl_display_get_error(cl->display) == 0,
 		"An error in display occured");
