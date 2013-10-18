@@ -140,6 +140,8 @@ wit_display_process_request(struct wit_display *disp)
 	assertf(disp->request, "We do not have request signalized. "
 		"(It can mean that display is not running)");
 
+	wl_display_flush_clients(disp->display);
+
 	fd = disp->client_sock[1];
 
 	assread(fd, &op, sizeof(op));
