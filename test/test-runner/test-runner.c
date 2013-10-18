@@ -164,7 +164,7 @@ run_test(const struct test *t)
 	if (fprintf(f, "%lu %lu %lu\n",
 		 time(NULL), end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec) < 0) {
 		 fclose(f);
-		 err(EXIT_FAILURE, "Writing benchmark failed");
+		 errx(EXIT_FAILURE, "Writing to %s failed", bench_name);
 	}
 
 	fclose(f);
