@@ -161,8 +161,8 @@ run_test(const struct test *t)
 	if (f == NULL)
 		errx(EXIT_FAILURE, "Opening '%s' failed", bench_name);
 
-	if (fprintf(f, "%lu %lu\n",
-		 end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec) < 0) {
+	if (fprintf(f, "%lu %lu %lu\n",
+		 time(NULL), end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec) < 0) {
 		 fclose(f);
 		 err(EXIT_FAILURE, "Writing benchmark failed");
 	}
