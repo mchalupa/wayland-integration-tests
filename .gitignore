@@ -30,6 +30,8 @@ test/test-runner/.deps/
 test/test-runner/.libs/
 test/Makefile
 test/test-runner/Makefile
+test/benchmarks
+src/.libs/
 
 #test binaries
 test/*-test
