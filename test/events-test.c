@@ -167,7 +167,6 @@ TEST(eventarray_emit_tst)
 
 	wit_display_run(d);
 
-	/* just test if we won't get SIGSEGV because of bad resource */
 	wit_eventarray_add(tea, DISPLAY, &touch_e);
 	wit_eventarray_add(tea, DISPLAY, &pointer_e, 0, 0, 0, 0);
 	wit_eventarray_add(tea, DISPLAY, &keyboard_e, 0, 0, 0, 0);
@@ -175,8 +174,8 @@ TEST(eventarray_emit_tst)
 
 	assert(tea->count == 4 && tea->index == 0);
 
-	/* process request for events */
-	wit_display_process_request(d);
+	/* just test if we won't get SIGSEGV because of bad resource */
+	wit_display_event_count(d);
 
 	assert(tea->count == 4);
 	assertf(tea->index == 4, "Index is set wrong (%d)", tea->index);
@@ -286,8 +285,13 @@ send_ea_basic_main(int sock)
 
 	wit_eventarray_add(ea, CLIENT, touch_motion, 0x0131, -5,
 			   wl_fixed_from_int(45), wl_fixed_from_double(2.74));
+	wit_eventarray_add(ea, CLIENT, touch_motion, 0x0131, -5,
+			   wl_fixed_from_int(45), wl_fixed_from_double(2.74));
+	wit_eventarray_add(ea, CLIENT, touch_motion, 0x0131, -5,
+			   wl_fixed_from_int(45), wl_fixed_from_double(2.74));
 
 	wit_client_send_eventarray(c, ea);
+	wit_client_ask_for_events(c, 3);
 
 	wit_eventarray_free(ea);
 	wit_client_free(c);
@@ -310,6 +314,14 @@ TEST(send_eventarray_basic_events_tst)
 
 	wit_eventarray_add(ea, DISPLAY, touch_motion, 0x0131, -5,
 			   wl_fixed_from_int(45), wl_fixed_from_double(2.74));
+	wit_eventarray_add(ea, DISPLAY, touch_motion, 0x0131, -5,
+			   wl_fixed_from_int(45), wl_fixed_from_double(2.74));
+	wit_eventarray_add(ea, DISPLAY, touch_motion, 0x0131, -5,
+			   wl_fixed_from_int(45), wl_fixed_from_double(2.74));
+
+	/* try emit commited eventarray, don't catch it. Only test if we won't get
+	 * some error. That the eventarray is same we'll test by compare() */
+	wit_display_event_count(d);
 
 	assert(wit_eventarray_compare(d->events, ea) == 0);
 
@@ -333,7 +345,21 @@ pointer_handle_button(void *data, struct wl_pointer *pointer, uint32_t serial,
 	c->data = (void *) 0xb00;
 }
 
+static void
+pointer_handle_enter(void *data, struct wl_pointer *pointer, uint32_t serial,
+		     struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y)
+{
+}
+
+static void
+pointer_handle_leave(void *data, struct wl_pointer *pointer,
+		     struct wl_surface *surface)
+{
+}
+
+
 static const struct wl_pointer_listener pointer_listener = {
+	.enter = pointer_handle_enter,
 	.button = pointer_handle_button,
 };
 
@@ -367,20 +393,18 @@ TEST(send_one_event_tst)
 static int
 send_one_event2_main(int sock)
 {
-	struct wl_compositor *comp;
+	struct wl_surface *surf;
 	struct wit_client *c = wit_client_populate(sock);
 	wit_client_add_listener(c, "wl_pointer", (void *) &pointer_listener);
-	comp = wl_compositor_create_surface(c->compositor.proxy);
+	surf = wl_compositor_create_surface((struct wl_compositor *) c->compositor.proxy);
 	wl_display_roundtrip(c->display);
-	assert(comp);
+	assert(surf);
 
 	WIT_EVENT_DEFINE(pointer_enter, &wl_pointer_interface, WL_POINTER_ENTER);
-	wit_client_trigger_event(c, pointer_enter, 11, comp, 0, 0);
+	wit_client_trigger_event(c, pointer_enter, 11, surf, 0, 0);
 	wl_display_dispatch(c->display);
 
-	assert(c->data == (void *) 0xb00);
-
-	wl_compositor_destroy(comp);
+	wl_surface_destroy(surf);
 	wit_client_free(c);
 	return EXIT_SUCCESS;
 }
@@ -392,6 +416,47 @@ TEST(send_one_event2_tst)
 
 	wit_display_run(d);
 	wit_display_event_emit(d);
+
+	wit_display_destroy(d);
+}
+
+static int
+trigger_multiple_event_main(int s)
+{
+	/* define events */
+	WIT_EVENT_DEFINE(pointer_enter, &wl_pointer_interface, WL_POINTER_ENTER);
+	WIT_EVENT_DEFINE(pointer_leave, &wl_pointer_interface, WL_POINTER_LEAVE);
+	WIT_EVENT_DEFINE(keyboard_enter, &wl_keyboard_interface, WL_KEYBOARD_ENTER);
+
+	/* get and create objects */
+	struct wit_client *c = wit_client_populate(s);
+	struct wl_array array;
+	struct wl_surface *surf;
+	surf = wl_compositor_create_surface((struct wl_compositor *) c->compositor.proxy);
+	wl_array_init(&array);
+	wl_array_add(&array, 15);
+	strcpy(array.data, "Cool array");
+
+	wit_client_trigger_event(c, pointer_enter,
+				 0, surf,
+				 wl_fixed_from_int(13), wl_fixed_from_int(43));
+	wit_client_trigger_event(c, pointer_leave, 0, surf);
+	wit_client_trigger_event(c, keyboard_enter, 0, surf, &array);
+
+	wl_array_release(&array);
+	wl_surface_destroy(surf);
+	wit_client_free(c);
+	return EXIT_SUCCESS;
+}
+
+TEST(trigger_multiple_event_tst)
+{
+	struct wit_display *d
+		= wit_display_create_and_run(NULL, trigger_multiple_event_main);
+
+	wit_display_event_emit(d); /* enter */
+	wit_display_event_emit(d); /* leave */
+	wit_display_event_emit(d); /* keyboard enter */
 
 	wit_display_destroy(d);
 }
