@@ -1,0 +1,10 @@
+When the test is run, it is measured how long it takes to finish the test.
+The result is then saved in $(top_dir)/test/benchmarks/test_name.benchmark
+
+The file structure is following:
+
+timestamp seconds nanoseconds
+timestamp seconds nanoseconds
+timestamp seconds nanoseconds
+...
+...
