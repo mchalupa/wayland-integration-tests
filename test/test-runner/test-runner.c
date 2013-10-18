@@ -30,8 +30,11 @@
 #include <sys/wait.h>
 #include <string.h>
 #include <assert.h>
+#include <err.h>
 #include <dlfcn.h>
 #include <errno.h>
+#include <time.h>
+#include <fcntl.h>
 
 #include "config.h"
 
@@ -124,9 +127,16 @@ run_test(const struct test *t)
 {
 	int cur_alloc = num_alloc;
 	int cur_fds, num_fds;
+	struct timespec start, end;
+	char bench_name[255];
+	FILE *f;
 
 	cur_fds = count_open_fds();
+
+	clock_gettime(CLOCK_MONOTONIC, &start);
 	t->run();
+	clock_gettime(CLOCK_MONOTONIC, &end);
+
 	if (leak_check_enabled) {
 		if (cur_alloc != num_alloc) {
 			fprintf(stderr, "Memory leak detected in test. "
@@ -144,6 +154,21 @@ run_test(const struct test *t)
 			abort();
 		}
 	}
+
+	/* save benchmark tests */
+	snprintf(bench_name, 255, "benchmarks/%s.benchmark", t->name);
+	f = fopen(bench_name, "a");
+	if (f == NULL)
+		errx(EXIT_FAILURE, "Opening '%s' failed", bench_name);
+
+	if (fprintf(f, "%lu %lu\n",
+		 end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec) < 0) {
+		 fclose(f);
+		 err(EXIT_FAILURE, "Writing benchmark failed");
+	}
+
+	fclose(f);
+
 	exit(EXIT_SUCCESS);
 }
 
