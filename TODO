@@ -3,3 +3,9 @@ TODO
 
   * Add support for all wayland's objects
   * Add comments
+  * Create wiki and README file to test/
+  * Add benchmarks (API for benchmarks, not tests benchmarks)
+  * Create tool for manipulation with benchmarks outcomes
+  * Consider rewriting colorlog into some faster language. On the other side,
+    shell is present everywhere.
+  * Consider support for multiple wayland clients
