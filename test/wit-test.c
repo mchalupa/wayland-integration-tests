@@ -102,6 +102,17 @@ TEST(client_create)
 	wit_display_destroy(d);
 }
 
+TEST(client_create_another_way)
+{
+	struct wit_display *d = wit_display_create_and_run(NULL, client_main);
+	assertf(d->client_exit_code == 42,
+		"The value returned in client_main doesn't mach 42 (%d)",
+		d->client_exit_code);
+
+	d->client_exit_code = 0;
+	wit_display_destroy(d);
+}
+
 TEST(user_data_without_destr)
 {
 	struct wit_display *d = wit_display_create(NULL);
