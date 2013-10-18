@@ -349,18 +349,52 @@ static void
 pointer_handle_enter(void *data, struct wl_pointer *pointer, uint32_t serial,
 		     struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y)
 {
+	assert(data);
+	assert(pointer);
+	assert(serial == 0);
+	assert(surface);
+	assert(wl_fixed_to_int(x) == 13);
+	assert(wl_fixed_to_int(y) == 43);
+	assert(wl_proxy_get_user_data(surface) == (void *) wl_proxy_get_id(surface));
+
+	struct wit_client *c = data;
+	(*((int *) c->data))++;
 }
 
 static void
 pointer_handle_leave(void *data, struct wl_pointer *pointer,
-		     struct wl_surface *surface)
+		     uint32_t serial, struct wl_surface *surface)
 {
+	assert(data && pointer);
+	assert(surface);
+
+	struct wit_client *c = data;
+	(*((int *) c->data))++;
 }
 
 
 static const struct wl_pointer_listener pointer_listener = {
 	.enter = pointer_handle_enter,
+	.leave = pointer_handle_leave,
 	.button = pointer_handle_button,
+};
+
+static void
+keyboard_handle_enter(void *data, struct wl_keyboard *keyboard,
+		      uint32_t serial, struct wl_surface *surface,
+		      struct wl_array *array)
+{
+	assert(data && keyboard && surface && array);
+	assert(serial == 0);
+
+	assert(strcmp(array->data, "Cool array") == 0);
+
+	struct wit_client *c = data;
+	(*((int *) c->data))++;
+}
+
+static const struct wl_keyboard_listener keyboard_listener = {
+	.enter = keyboard_handle_enter
 };
 
 static int
@@ -399,10 +433,18 @@ send_one_event2_main(int sock)
 	surf = wl_compositor_create_surface((struct wl_compositor *) c->compositor.proxy);
 	wl_display_roundtrip(c->display);
 	assert(surf);
+	wl_proxy_set_user_data(surf, (void *) wl_proxy_get_id(surf));
+
+	int count = 0;
+	c->data = &count;
 
 	WIT_EVENT_DEFINE(pointer_enter, &wl_pointer_interface, WL_POINTER_ENTER);
-	wit_client_trigger_event(c, pointer_enter, 11, surf, 0, 0);
+	wit_client_trigger_event(c, pointer_enter,
+				 0, surf,
+				 wl_fixed_from_int(13), wl_fixed_from_int(43));
 	wl_display_dispatch(c->display);
+
+	assertf(count == 1, "Called only %d callback (instead of 1)", count);
 
 	wl_surface_destroy(surf);
 	wit_client_free(c);
@@ -433,15 +475,29 @@ trigger_multiple_event_main(int s)
 	struct wl_array array;
 	struct wl_surface *surf;
 	surf = wl_compositor_create_surface((struct wl_compositor *) c->compositor.proxy);
+	wl_proxy_set_user_data(surf, (void *) wl_proxy_get_id(surf));
+
+	/* counter of callbacks called */
+	int count = 0;
+	c->data = &count;
+
+	/* add listeners */
+	wit_client_add_listener(c, "wl_pointer", (void *) &pointer_listener);
+	wit_client_add_listener(c, "wl_keyboard", (void *) &keyboard_listener);
+
 	wl_array_init(&array);
 	wl_array_add(&array, 15);
 	strcpy(array.data, "Cool array");
 
+	/* trigger emitting events */
 	wit_client_trigger_event(c, pointer_enter,
 				 0, surf,
 				 wl_fixed_from_int(13), wl_fixed_from_int(43));
 	wit_client_trigger_event(c, pointer_leave, 0, surf);
 	wit_client_trigger_event(c, keyboard_enter, 0, surf, &array);
+	wl_display_dispatch(c->display);
+
+	assertf(count == 3, "Called only %d callback (instead of 3)", count);
 
 	wl_array_release(&array);
 	wl_surface_destroy(surf);
