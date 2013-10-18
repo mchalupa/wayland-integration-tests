@@ -62,7 +62,7 @@ void
 wit_client_send_eventarray(struct wit_client *cl, struct wit_eventarray *ea);
 
 void
-wit_client_trigger_event(struct wit_client *cl, struct wit_event *e, ...);
+wit_client_trigger_event(struct wit_client *cl, const struct wit_event *e, ...);
 
 void
 wit_client_add_listener(struct wit_client *cl, const char *interface,
