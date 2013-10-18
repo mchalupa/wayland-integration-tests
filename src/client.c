@@ -188,6 +188,7 @@ kick_display(struct wit_client *c)
 {
 	assert(c);
 
+	wl_display_flush(c->display);
 	wl_display_dispatch_pending(c->display);
 
 	int stat = kill(getppid(), SIGUSR1);
