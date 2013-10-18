@@ -183,9 +183,13 @@ wit_client_free(struct wit_client *c)
 	free(c);
 }
 
-static inline void
-kick_display(void)
+static void
+kick_display(struct wit_client *c)
 {
+	assert(c);
+
+	wl_display_dispatch_pending(c->display);
+
 	int stat = kill(getppid(), SIGUSR1);
 	assertf(stat == 0,
 		"Failed sending SIGUSR1 signal to display");
@@ -206,7 +210,7 @@ wit_client_call_user_func(struct wit_client *cl)
 {
 	dbg("Request for user func\n");
 
-	kick_display();
+	kick_display(cl);
 	send_message(cl->sock, RUN_FUNC);
 	get_acknowledge(cl->sock, RUN_FUNC);
 
@@ -220,7 +224,7 @@ wit_client_send_eventarray(struct wit_client *cl, struct wit_eventarray *ea)
 
 	dbg("Sending eventarray to display\n");
 
-	kick_display();
+	kick_display(cl);
 	dbg("Kicked display\n");
 	/* say display that you will send eventarray */
 	//send_message(cl->sock, SEND_EVENTARRAY);
@@ -249,7 +253,7 @@ wit_client_trigger_event(struct wit_client *cl, struct wit_event *e, ...)
 	wit_eventarray_add_vl(ea, CLIENT, e, vl);
 	va_end(vl);
 
-	kick_display();
+	kick_display(cl);
 	send_message(cl->sock, EVENT_EMIT);
 	wit_eventarray_send(cl, ea);
 	get_acknowledge(cl->sock, EVENT_EMIT);
@@ -264,7 +268,7 @@ wit_client_send_data(struct wit_client *cl, void *src, size_t size)
 
 	dbg("Sending data to display\n");
 
-	kick_display();
+	kick_display(cl);
 	send_message(cl->sock, SEND_BYTES, src, size);
 	get_acknowledge(cl->sock, SEND_BYTES);
 
@@ -280,7 +284,7 @@ wit_client_ask_for_events(struct wit_client *cl, int n)
 
 	dbg("Request for events(%p, %d)\n", cl, n);
 
-	kick_display();
+	kick_display(cl);
 	send_message(cl->sock, EVENT_COUNT, n);
 	get_acknowledge(cl->sock, EVENT_COUNT);
 
@@ -295,7 +299,7 @@ wit_client_ask_for_events(struct wit_client *cl, int n)
 void
 wit_client_barrier(struct wit_client *cl)
 {
-	kick_display();
+	kick_display(cl);
 	send_message(cl->sock, BARRIER);
 	get_acknowledge(cl->sock, BARRIER);
 
