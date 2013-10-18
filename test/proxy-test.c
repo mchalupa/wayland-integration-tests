@@ -159,6 +159,7 @@ event_empty(void *data, struct wl_dummy *dummy)
 static void
 event_i(void *data, struct wl_dummy *dummy, int i)
 {
+	assert(data);
 	assert(dummy);
 
 	assertf(i == 13, "Got wrong integer value");
@@ -168,6 +169,7 @@ event_i(void *data, struct wl_dummy *dummy, int i)
 static void
 event_s(void *data, struct wl_dummy *dummy, const char *s)
 {
+	assert(data);
 	assert(dummy);
 
 	assertf(strcmp(s, "deadbee") == 0,
@@ -194,7 +196,7 @@ registry_handle_global(void *data, struct wl_registry *registry,
 
 	if (strcmp(interface, "wl_dummy") == 0) {
 		dummy = wl_registry_bind(registry, id,
-						&wl_dummy_interface, 0);
+						&wl_dummy_interface, version);
 		assertf(dummy, "Binding to registry for wl_dummy failed");
 
 		*((struct wl_dummy **) data) = dummy;
@@ -215,6 +217,7 @@ proxy_marshal_main(int sock)
 	struct wl_dummy *dummy = NULL;
 	int i;
 
+	assert(sock >= 0); /* unused variable warrning */
 	struct wl_display *d = wl_display_connect(NULL);
 	assert(d);
 
@@ -249,6 +252,7 @@ static void
 dummy_bind(struct wl_client *c, void *data, uint32_t ver, uint32_t id)
 {
 	struct wit_display *d = data;
+	assert(c == d->client);
 
 	/* create dummy resources */
 	d->data = wl_resource_create(d->client, &wl_dummy_interface, ver, id);
@@ -279,7 +283,7 @@ run_compositor_with_dummy(int (*client_main)(int))
 TEST(dummy_invoke_catch)
 {
 	int i;
-	int stat = run_compositor_with_dummy(proxy_marshal_main);
+	run_compositor_with_dummy(proxy_marshal_main);
 
 	/* check request-events state */
 	for (i = 0; i < REQUESTS_NO; i++)
@@ -293,6 +297,7 @@ same_ids_main(int sock)
 	struct wl_display *d;
 	struct wl_proxy *p1;
 
+	assert(sock >= 0);
 	d = wl_display_connect(NULL);
 	assert(d);
 
@@ -326,6 +331,7 @@ FAIL_TEST(same_ids)
 static int
 proxy_create_main(int sock)
 {
+	assert(sock >= 0);
 	struct wl_display *d = wl_display_connect(NULL);
 	assert(d);
 
