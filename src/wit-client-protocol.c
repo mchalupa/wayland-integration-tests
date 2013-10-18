@@ -146,7 +146,7 @@ registry_handle_global(void *data, struct wl_registry *registry,
 		assertf(cl->shm.proxy,
 			"Binding to registry for wl_shm failed");
 	} else if (strcmp(interface, "wl_display") == 0) {
-		// do nothing
+		return;
 	} else {
 		assertf(0, "Unknown interface!");
 	}
