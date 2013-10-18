@@ -143,11 +143,11 @@ user_func(void *data)
 static int
 user_func_main(int sock)
 {
-	struct wit_client c;
-	c.sock = sock;
+	struct wit_client *c = wit_client_populate(sock);
 
-	wit_client_call_user_func(&c);
+	wit_client_call_user_func(c);
 
+	wit_client_free(c);
 	return EXIT_SUCCESS;
 }
 
@@ -161,7 +161,7 @@ TEST(user_func_tst)
 	wit_display_run(d);
 
 	/* process user func */
-	wit_display_process_request(d);
+	wit_display_user_func(d);
 
 	assertf(user_func_called, "User function wasn't called");
 
