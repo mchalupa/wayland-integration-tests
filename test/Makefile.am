@@ -1,13 +1,16 @@
 SUBDIRS = test-runner
 
+CLEANFILES = benchmarks/*.benchmark
+
 TESTS =				\
 	wit-test		\
 	proxy-test		\
 	events-test		\
 	pointer-test
 
-check_PROGRAMS =				\
+check_PROGRAMS =		\
 	$(TESTS)
+
 
 test_runner_dir = $(top_builddir)/test/test-runner
 
