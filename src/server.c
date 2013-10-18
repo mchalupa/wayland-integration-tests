@@ -292,6 +292,18 @@ wit_display_create(struct wit_config *conf)
 	return d;
 }
 
+inline struct wit_display *
+wit_display_create_and_run(struct wit_config *conf,
+			   int (*client_main)(int))
+{
+	struct wit_display *d = wit_display_create(conf);
+	wit_display_create_client(d, client_main);
+	wit_display_run(d);
+
+	/* so that we can check for errors and free it */
+	return d;
+}
+
 void
 wit_display_destroy(struct wit_display *d)
 {
