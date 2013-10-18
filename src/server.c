@@ -79,13 +79,6 @@ emit_events(struct wit_display *d, int n)
 	assertf(n >= 0, "Wrong value of n");
 	assertf(d->events, "No eventarray");
 
-	dbg("Emitting events\n%s%s%s%s",
-		d->resources.seat 	? "\tHave resource seat\n" 	: "",
-		d->resources.pointer 	? "\tHave resource pointer\n" 	: "",
-		d->resources.keyboard 	? "\tHave resource keyboard\n" 	: "",
-		d->resources.touch	? "\tHave resource touch\n" 	: ""
-	);
-
 	/* how many events can be emitted (for assert()) */
 	count = d->events->count - d->events->index;
 
