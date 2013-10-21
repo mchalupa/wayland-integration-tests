@@ -6,7 +6,8 @@ TESTS =				\
 	wit-test		\
 	proxy-test		\
 	events-test		\
-	wl_pointer-test
+	wl_pointer-test		\
+	wl_registry-test
 
 check_PROGRAMS =		\
 	$(TESTS)
@@ -18,6 +19,7 @@ wit_test_SOURCES = wit-test.c
 proxy_test_SOURCES = proxy-test.c
 events_test_SOURCES = events-test.c
 wl_pointer_test_SOURCES = wl_pointer-test.c
+wl_registry_test_SOURCES = wl_registry-test.c
 
 AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_builddir)/ -I$(test_runner_dir)/
 AM_CFLAGS = $(TESTS_CFLAGS)
