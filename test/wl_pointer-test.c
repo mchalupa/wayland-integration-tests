@@ -99,6 +99,86 @@ static const struct wl_pointer_listener pointer_default_listener = {
 	pointer_handle_axis
 };
 
+/* -----------------------------------------------------------------------------
+    Pointer implementation
+   -------------------------------------------------------------------------- */
+static void
+pointer_set_cursor(struct wl_client *client, struct wl_resource *resource,
+		   uint32_t serial, struct wl_resource *surface,
+		   int32_t hotspot_x, int32_t hotspot_y)
+{
+	 dbg("client: %p, res: %p, serial: %u, surf: %p, x: %d, y: %d\n",
+	 client, resource, serial, surface, hotspot_x, hotspot_y);
+	 /*
+	 * This request only takes effect if the
+	 * pointer focus for this device is one of the requesting client's
+	 * surfaces or the surface parameter is the current pointer
+	 * surface. If there was a previous surface set with this request
+	 * it is replaced. If surface is NULL, the pointer image is hidden.
+	 *
+	 * The parameters hotspot_x and hotspot_y define the position of
+	 * the pointer surface relative to the pointer location. Its
+	 * top-left corner is always at (x, y) - (hotspot_x, hotspot_y),
+	 * where (x, y) are the coordinates of the pointer location, in
+	 * surface local coordinates.
+	 *
+	 * On surface.attach requests to the pointer surface, hotspot_x and
+	 * hotspot_y are decremented by the x and y parameters passed to
+	 * the request. Attach must be confirmed by wl_surface.commit as
+	 * usual.
+	 *
+	 * The hotspot can also be updated by passing the currently set
+	 * pointer surface to this request with new values for hotspot_x
+	 * and hotspot_y.
+	 *
+	 * The current and pending input regions of the wl_surface are
+	 * cleared, and wl_surface.set_input_region is ignored until the
+	 * wl_surface is no longer used as the cursor. When the use as a
+	 * cursor ends, the current and pending input regions become
+	 * undefined, and the wl_surface is unmapped.
+	 */
+}
+
+static const struct wl_pointer_interface pointer_implementation  = {
+	.set_cursor = pointer_set_cursor
+};
+
+static int
+pointer_set_cursor_main(int s)
+{
+	struct wit_client *c = wit_client_populate(s);
+	struct wl_surface *surf =
+		wl_compositor_create_surface((struct wl_compositor *) c->compositor.proxy);
+	wl_display_roundtrip(c->display);
+
+	/* stop display, so that it can set implementation */
+	wit_client_barrier(c);
+
+	wl_pointer_set_cursor((struct wl_pointer *) c->pointer.proxy,
+			      0, surf, 5, 5);
+	wl_pointer_set_cursor((struct wl_pointer *) c->pointer.proxy,
+			      0, surf, 5, 5);
+
+	wit_client_free(c);
+	return EXIT_SUCCESS;
+}
+
+TEST(pointer_set_cursor_tst)
+{
+	struct wit_config conf = {CONF_SEAT | CONF_COMPOSITOR, ~(CONF_KEYBOARD | CONF_TOUCH), 0};
+	struct wit_display *d = wit_display_create(&conf);
+
+	wit_display_create_client(d, pointer_set_cursor_main);
+	wit_display_run(d);
+
+	wl_resource_set_implementation(d->resources.pointer,
+				       &pointer_implementation, d, NULL);
+
+	wit_display_barrier(d);
+
+	wit_display_destroy(d);
+}
+
 static int
 pointer_test_each_once_main(int sock)
 {
@@ -167,3 +247,5 @@ TEST(pointer_each_once_tst)
 	wit_eventarray_free(events);
 	wit_display_destroy(d);
 }
+
+/* TODO create more sophisticated tests */
