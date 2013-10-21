@@ -1,6 +1,6 @@
 SUBDIRS = test-runner
 
-CLEANFILES = benchmarks/*.benchmark
+CLEANFILES = benchmarks/*.benchmark *-test
 
 TESTS =				\
 	wit-test		\
