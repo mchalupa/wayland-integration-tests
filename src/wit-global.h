@@ -34,9 +34,11 @@ enum side {
 };
 
 
+/* hide warrnings about wl_buffer */
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <wayland-client-protocol.h>
-const struct wl_registry_listener registry_default_listener;
 
+const struct wl_registry_listener registry_default_listener;
 
 /* write with assert check */
 int
