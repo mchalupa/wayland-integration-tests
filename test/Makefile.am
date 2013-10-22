@@ -20,7 +20,7 @@ events_test_SOURCES = events-test.c
 wl_pointer_test_SOURCES = wl_pointer-test.c
 
 AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_builddir)/ -I$(test_runner_dir)/
-AM_CFLAGS = $(COMPILER_CFLAGS) $(TESTS_CFLAGS)# -ldl
+AM_CFLAGS = $(TESTS_CFLAGS)
 
 LDADD = $(top_builddir)/src/libwit-server.a \
 	$(top_builddir)/src/libwit-client.a \

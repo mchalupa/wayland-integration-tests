@@ -8,4 +8,4 @@ lib_test_helpers_la_SOURCES =	\
 	test-helpers.c
 
 AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_builddir)/
-AM_CFLAGS = $(COMPILER_CFLAGS) $(TESTS_CFLAGS)
+AM_CFLAGS = $(TESTS_CFLAGS)

@@ -15,7 +15,7 @@ libwit_client_a_SOURCES =	\
 
 libwit_global_la_SOURCES =	\
 	wit-global.c
-AM_CFLAGS = $(COMPILER_CFLAGS) $(WAYLAND_SERVER_CFLAGS) $(WAYLAND_CLIENT_CFLAGS)
+AM_CFLAGS = $(WAYLAND_SERVER_CFLAGS) $(WAYLAND_CLIENT_CFLAGS)
 
 debug:
 	@echo -e "client_la_LIBADD = ${libwit_client_la_LIBADD}\n\
