@@ -92,3 +92,68 @@ TEST(global_bind_wrong_id_tst)
 		= wit_display_create_and_run(NULL, global_bind_wrong_id_main);
 	wit_display_destroy(d);
 }
+
+static int
+create_more_same_singletons_main(int s)
+{
+	struct wit_client *c = wit_client_populate(s);
+	wit_client_barrier(c);
+
+	wl_display_roundtrip(c->display);
+	wit_client_free(c);
+	return EXIT_SUCCESS;
+}
+
+TEST(create_more_same_singletons_tst)
+{
+	struct wl_global *g1, *g2;
+
+	/* create only display */
+	struct wit_config conf = {0, 0, 0};
+	struct wit_display *d = wit_display_create(&conf);
+	wit_display_create_client(d, create_more_same_singletons_main);
+	wit_display_run(d);
+
+	g1 = wl_global_create(d->display, &wl_display_interface,
+			      wl_display_interface.version, NULL, NULL);
+	g2 = wl_global_create(d->display, &wl_display_interface,
+			      wl_display_interface.version, NULL, NULL);
+	wit_display_barrier(d);
+
+	/* XXX ask about that */
+	ifdbg(g1 || g2,
+		"Display is stated a singleton but it's possible to create it "
+		"more times. Dunno if it's bug..");
+
+	wl_global_destroy(g1);
+	wl_global_destroy(g2);
+	wit_display_destroy(d);
+}
+
+create_wrong_version_global_main(int s)
+{
+	struct wit_client c = {.sock = s};
+	c.display = wl_display_connect(NULL);
+	assert(c.display);
+
+	wit_client_barrier(&c);
+
+	wl_display_disconnect(c.display);
+	return EXIT_SUCCESS;
+}
+
+TEST(create_wrong_version_global_tst)
+{
+	struct wit_config conf = {0, 0, 0};
+	struct wl_global *g1, *g2;
+	struct wit_display *d
+		= wit_display_create_and_run(&conf,
+					     create_wrong_version_global_main);
+	g1 = wl_global_create(d->display, &wl_compositor_interface,
+			      wl_compositor_interface.version + 1, NULL, NULL);
+	assertf(g1 == NULL,
+		"Global created even with wrong version");
+
+	wit_display_barrier(d);
+	wit_display_destroy(d);
+}
