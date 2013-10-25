@@ -226,10 +226,6 @@ wit_client_send_eventarray(struct wit_client *cl, struct wit_eventarray *ea)
 	dbg("Sending eventarray to display\n");
 
 	kick_display(cl);
-	dbg("Kicked display\n");
-	/* say display that you will send eventarray */
-	//send_message(cl->sock, SEND_EVENTARRAY);
-
 	wit_eventarray_send(cl, ea);
 
 	get_acknowledge(cl->sock, SEND_EVENTARRAY);
