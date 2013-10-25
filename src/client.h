@@ -11,6 +11,8 @@ struct wit_client_object {
 	const void *listener;
 	void *data;
 	void (*data_destr)(void *); /* data destructor */
+ 	/* here we can save last event catched for the object */
+	struct wit_event last_event;
 };
 
 /**
