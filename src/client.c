@@ -96,6 +96,18 @@ wit_client_add_listener(struct wit_client *cl, const char *interface,
 				cl);
 		else
 			dbg("Not adding listener. seat proxy hasn't been created yet.\n");
+	} else if (strcmp(interface, "wl_shm") == 0) {
+		ifdbg(cl->shm.listener, "Rewriting shm listener (%p)\n",
+		      cl->shm.listener);
+		cl->shm.listener = listener;
+
+		if (cl->shm.proxy)
+			wl_shm_add_listener(
+				(struct wl_shm *) cl->shm.proxy,
+				(struct wl_shm_listener *) cl->shm.listener,
+				cl);
+		else
+			dbg("Not adding listener. shm proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_registry") == 0) {
 		ifdbg(cl->registry.listener, "Rewriting registry listener (%p)\n",
 		      cl->registry.listener);
