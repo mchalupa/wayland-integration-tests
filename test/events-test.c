@@ -149,10 +149,10 @@ TEST(eventarray_add_tst)
 
 /* just define some events, no matter what events and do it manually, so it can
  * be global */
-struct wit_event touch_e = {&wl_touch_interface, WL_TOUCH_FRAME};
-struct wit_event pointer_e = {&wl_pointer_interface, WL_POINTER_BUTTON};
-struct wit_event keyboard_e = {&wl_keyboard_interface, WL_KEYBOARD_KEY};
-struct wit_event seat_e = {&wl_seat_interface, WL_SEAT_NAME};
+WIT_EVENT_DEFINE_GLOBAL(touch_e, &wl_touch_interface, WL_TOUCH_FRAME);
+WIT_EVENT_DEFINE_GLOBAL(pointer_e, &wl_pointer_interface, WL_POINTER_BUTTON);
+WIT_EVENT_DEFINE_GLOBAL(keyboard_e, &wl_keyboard_interface, WL_KEYBOARD_KEY);
+WIT_EVENT_DEFINE_GLOBAL(seat_e, &wl_seat_interface, WL_SEAT_NAME);
 
 static int
 eventarray_emit_main(int sock)
@@ -184,10 +184,12 @@ TEST(eventarray_emit_tst)
 
 	wit_display_run(d);
 
-	wit_eventarray_add(tea, DISPLAY, &touch_e);
-	wit_eventarray_add(tea, DISPLAY, &pointer_e, 0, 0, 0, 0);
-	wit_eventarray_add(tea, DISPLAY, &keyboard_e, 0, 0, 0, 0);
-	wit_eventarray_add(tea, DISPLAY, &seat_e, "Cool name");
+	/* XXX test all resources. It doesn't matter that we don't check anything,
+	 * only test if won't get SIGSEGV or SIGABRT */
+	wit_eventarray_add(tea, DISPLAY, touch_e);
+	wit_eventarray_add(tea, DISPLAY, pointer_e, 0, 0, 0, 0);
+	wit_eventarray_add(tea, DISPLAY, keyboard_e, 0, 0, 0, 0);
+	wit_eventarray_add(tea, DISPLAY, seat_e, "Cool name");
 
 	assert(tea->count == 4 && tea->index == 0);
 
@@ -197,7 +199,8 @@ TEST(eventarray_emit_tst)
 	assert(tea->count == 4);
 	assertf(tea->index == 4, "Index is set wrong (%d)", tea->index);
 
-	/* how many resources we tested?
+	/* XXX uncomment on release
+	 * how many resources we tested?
 	 * it's just for me..
 	int resources_tst = tea->count + 1; // +1 = compositor doesn't have events
 	int resources_no = sizeof(d->resources) / sizeof(struct wl_resource *);
@@ -289,7 +292,7 @@ TEST(ea_add_dynamic)
 }
 
 
-/* test events which don't allocate it's own memory */
+/* test events which don't allocate their own memory */
 static int
 send_ea_basic_main(int sock)
 {
@@ -372,8 +375,8 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer, uint32_t serial,
 	assert(surface);
 	assert(wl_fixed_to_int(x) == 13);
 	assert(wl_fixed_to_int(y) == 43);
-	assert(wl_proxy_get_user_data(surface) ==
-	       (void *) wl_proxy_get_id((struct wl_proxy *) surface));
+	assert((uint32_t) wl_proxy_get_user_data((struct wl_proxy *) surface) ==
+	       wl_proxy_get_id((struct wl_proxy *) surface));
 
 	struct wit_client *c = data;
 	(*((int *) c->data))++;
@@ -448,17 +451,18 @@ send_one_event2_main(int sock)
 	struct wl_surface *surf;
 	struct wit_client *c = wit_client_populate(sock);
 	wit_client_add_listener(c, "wl_pointer", (void *) &pointer_listener);
+
 	surf = wl_compositor_create_surface((struct wl_compositor *) c->compositor.proxy);
 	wl_display_roundtrip(c->display);
 	assert(surf);
-	wl_proxy_set_user_data(surf, (void *) wl_proxy_get_id(surf));
+	wl_surface_set_user_data(surf,
+				 (void *) wl_proxy_get_id((struct wl_proxy *) surf));
 
 	int count = 0;
 	c->data = &count;
 
 	WIT_EVENT_DEFINE(pointer_enter, &wl_pointer_interface, WL_POINTER_ENTER);
-	wit_client_trigger_event(c, pointer_enter,
-				 0, surf,
+	wit_client_trigger_event(c, pointer_enter, 0, surf,
 				 wl_fixed_from_int(13), wl_fixed_from_int(43));
 	wl_display_dispatch(c->display);
 
@@ -493,7 +497,8 @@ trigger_multiple_event_main(int s)
 	struct wl_array array;
 	struct wl_surface *surf;
 	surf = wl_compositor_create_surface((struct wl_compositor *) c->compositor.proxy);
-	wl_proxy_set_user_data(surf, (void *) wl_proxy_get_id(surf));
+	wl_surface_set_user_data(surf,
+				 (void *) wl_proxy_get_id((struct wl_proxy *) surf));
 
 	/* counter of callbacks called */
 	int count = 0;
@@ -508,8 +513,7 @@ trigger_multiple_event_main(int s)
 	strcpy(array.data, "Cool array");
 
 	/* trigger emitting events */
-	wit_client_trigger_event(c, pointer_enter,
-				 0, surf,
+	wit_client_trigger_event(c, pointer_enter, 0, surf,
 				 wl_fixed_from_int(13), wl_fixed_from_int(43));
 	wit_client_trigger_event(c, pointer_leave, 0, surf);
 	wit_client_trigger_event(c, keyboard_enter, 0, surf, &array);
