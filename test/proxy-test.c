@@ -35,12 +35,6 @@
 struct wl_dummy;
 
 const struct wl_interface dummy_interface;
-
-/*
- * list of interfaces used for wl_closure_print
- * sequence of interfaces from types + where_to_begin
- * should comply with signature
- */
 const struct wl_interface *types[] = {
 	NULL,
 	&dummy_interface,
@@ -211,6 +205,10 @@ const struct wl_registry_listener registry_listener = {
 	NULL
 };
 
+/*
+ * Basic simple test: each request will invoke an event with the very same
+ * arguments. So only test if request was invoked via wl_proxy_marshal and
+ * if it was catched and if it had the same arguments */
 static int
 proxy_marshal_main(int sock)
 {
@@ -292,6 +290,45 @@ TEST(dummy_invoke_catch)
 }
 
 static int
+proxy_marshal_wrong_opcode(int sock)
+{
+	struct wl_dummy *dummy = NULL;
+	int stat;
+
+	assert(sock >= 0); /* unused variable warrning */
+	struct wl_display *d = wl_display_connect(NULL);
+	assert(d);
+
+	struct wl_registry *reg = wl_display_get_registry(d);
+	assert(reg);
+
+	wl_registry_add_listener(reg, &registry_listener, &dummy);
+	wl_display_dispatch(d);
+
+	assertf(dummy, "Proxy has not been created");
+
+	/* XXX nowadays client get SIGSEGV when wl_debug=1
+	 * (within wl_closure_print iirc)
+	 * is it correct to let client get SIGSEGV? Isn't better to
+	 * check it and post error so that display can close connection
+	 * etc.? */
+	wl_proxy_marshal((struct wl_proxy *) dummy, REQUESTS_NO + 1);
+
+	wl_display_roundtrip(d);
+	stat = wl_display_get_error(d) != 0;
+
+	wl_proxy_destroy((struct wl_proxy *) dummy);
+	wl_display_disconnect(d);
+
+	return stat;
+}
+
+FAIL_TEST(proxy_marshal_wrong_opcode_tst)
+{
+	run_compositor_with_dummy(proxy_marshal_wrong_opcode);
+}
+
+static int
 same_ids_main(int sock)
 {
 	struct wl_display *d;
@@ -323,8 +360,7 @@ same_ids_main(int sock)
 
 FAIL_TEST(same_ids)
 {
-	int stat = run_compositor_with_dummy(same_ids_main);
-	exit(stat);
+	run_compositor_with_dummy(same_ids_main);
 }
 
 
@@ -358,6 +394,3 @@ TEST(create_setget)
 
 	wit_display_destroy(d);
 }
-
-
-
