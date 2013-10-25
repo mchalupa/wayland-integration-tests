@@ -4,8 +4,8 @@ CLEANFILES = benchmarks/*.benchmark *-test
 
 TESTS =				\
 	wit-test		\
-	proxy-test		\
 	events-test		\
+	wl_proxy-test		\
 	wl_pointer-test		\
 	wl_registry-test	\
 	wl_global-test
@@ -17,8 +17,8 @@ check_PROGRAMS =		\
 test_runner_dir = $(top_builddir)/test/test-runner
 
 wit_test_SOURCES = wit-test.c
-proxy_test_SOURCES = proxy-test.c
 events_test_SOURCES = events-test.c
+wl_proxy_test_SOURCES = wl_proxy-test.c
 wl_pointer_test_SOURCES = wl_pointer-test.c
 wl_registry_test_SOURCES = wl_registry-test.c
 wl_global_test_SOURCES = wl_global-test.c
