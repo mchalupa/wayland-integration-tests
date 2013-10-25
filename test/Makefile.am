@@ -8,7 +8,8 @@ TESTS =				\
 	wl_proxy-test		\
 	wl_pointer-test		\
 	wl_registry-test	\
-	wl_global-test
+	wl_global-test		\
+	wl_shm-test
 
 check_PROGRAMS =		\
 	$(TESTS)
@@ -22,6 +23,7 @@ wl_proxy_test_SOURCES = wl_proxy-test.c
 wl_pointer_test_SOURCES = wl_pointer-test.c
 wl_registry_test_SOURCES = wl_registry-test.c
 wl_global_test_SOURCES = wl_global-test.c
+wl_shm_test_SOURCES = wl_shm-test.c
 
 AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_builddir)/ -I$(test_runner_dir)/
 AM_CFLAGS = $(TESTS_CFLAGS)
