@@ -42,13 +42,13 @@ struct wit_eventarray {
 		(opcode),((struct wl_interface *) (intf))->name);		\
 	static const struct wit_event __wit_event_##eventname##_		\
 							= {(intf), (opcode)};	\
-	const struct wit_event *(eventname) = &__wit_event_##eventname##_;
+	static const struct wit_event *(eventname) = &__wit_event_##eventname##_;
 
 /* if we won't use assertf, we can do it globaly */
 #define WIT_EVENT_DEFINE_GLOBAL(eventname, intf, opcode)			\
 	static const struct wit_event __wit_event_##eventname##_		\
 							= {(intf), (opcode)};	\
-	const struct wit_event *(eventname) = &__wit_event_##eventname##_;
+	static const struct wit_event *(eventname) = &__wit_event_##eventname##_;
 
 struct wit_eventarray *
 wit_eventarray_create();
