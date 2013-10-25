@@ -222,11 +222,12 @@ TEST(pointer_each_once_tst)
 	wit_display_run(d);
 
 	/* barrier, wait for client to create resource */
-	wit_display_process_request(d);
+	wit_display_barrier(d);
 
 	/* I'm lazy, use this one variable for all events (modify it manually) */
 	struct wit_event pointer_event = {&wl_pointer_interface, WL_POINTER_MOTION};
 
+	/* fill eventarray */
 	wit_eventarray_add(events, DISPLAY, &pointer_event, 3, 0, 0);
 	pointer_event.opcode = WL_POINTER_BUTTON;
 	wit_eventarray_add(events, DISPLAY, &pointer_event, 4, 4, 0, 0);
@@ -238,8 +239,8 @@ TEST(pointer_each_once_tst)
 	pointer_event.opcode = WL_POINTER_LEAVE;
 	wit_eventarray_add(d->events, DISPLAY, &pointer_event, 111, d->resources.surface);
 
-	/* client is calling for events*/
-	wit_display_process_request(d);
+	/* client is calling for events */
+	wit_display_event_count(d);
 
 	wit_display_recieve_eventarray(d);
 	assert(wit_eventarray_compare(d->events, events) == 0);
