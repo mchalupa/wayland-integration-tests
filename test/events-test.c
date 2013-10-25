@@ -70,6 +70,23 @@ FAIL_TEST(define_illegal_event_2_tst)
 	exit(! event->interface); /* suppress compiler warning */
 }
 
+/* the compilation will fail if this macro is wrong */
+WIT_EVENT_DEFINE_GLOBAL(anevent, &wl_pointer_interface,
+			WL_POINTER_MOTION);
+TEST(define_global_event)
+{
+	/* define the same event locally and compare */
+	WIT_EVENT_DEFINE(othevent, &wl_pointer_interface,
+			 WL_POINTER_MOTION);
+	assertf(anevent->interface == othevent->interface,
+		"Interfaces differs");
+	assertf(anevent->opcode == othevent->opcode,
+		"Opcodes differs");
+	assertf(strcmp(anevent->interface->events[anevent->opcode].name,
+			othevent->interface->events[othevent->opcode].name) == 0,
+		"Events have different methods");
+}
+
 TEST(eventarray_init_tst)
 {
 	int i;
@@ -131,7 +148,7 @@ TEST(eventarray_add_tst)
 
 
 /* just define some events, no matter what events and do it manually, so it can
- * is global */
+ * be global */
 struct wit_event touch_e = {&wl_touch_interface, WL_TOUCH_FRAME};
 struct wit_event pointer_e = {&wl_pointer_interface, WL_POINTER_BUTTON};
 struct wit_event keyboard_e = {&wl_keyboard_interface, WL_KEYBOARD_KEY};
@@ -355,7 +372,8 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer, uint32_t serial,
 	assert(surface);
 	assert(wl_fixed_to_int(x) == 13);
 	assert(wl_fixed_to_int(y) == 43);
-	assert(wl_proxy_get_user_data(surface) == (void *) wl_proxy_get_id(surface));
+	assert(wl_proxy_get_user_data(surface) ==
+	       (void *) wl_proxy_get_id((struct wl_proxy *) surface));
 
 	struct wit_client *c = data;
 	(*((int *) c->data))++;
