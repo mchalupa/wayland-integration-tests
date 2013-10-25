@@ -36,6 +36,7 @@ registry_handle_global(void *data, struct wl_registry *registry,
 	struct wit_client *cl = data;
 	uint32_t *max_id = cl->data;
 
+	/* get maximal global id */
 	if (*max_id < id)
 		*max_id = id;
 }
@@ -110,6 +111,7 @@ TEST(create_more_same_singletons_tst)
 
 	/* create only display */
 	struct wit_config conf = {0, 0, 0};
+
 	struct wit_display *d = wit_display_create(&conf);
 	wit_display_create_client(d, create_more_same_singletons_main);
 	wit_display_run(d);
@@ -120,40 +122,27 @@ TEST(create_more_same_singletons_tst)
 			      wl_display_interface.version, NULL, NULL);
 	wit_display_barrier(d);
 
-	/* XXX ask about that */
+	/* XXX Asked about that and it's *not* a bug.
+	 * Yet I will keep the code here */
 	ifdbg(g1 || g2,
 		"Display is stated a singleton but it's possible to create it "
-		"more times. Dunno if it's bug..");
+		"more times.");
 
 	wl_global_destroy(g1);
 	wl_global_destroy(g2);
 	wit_display_destroy(d);
 }
 
-create_wrong_version_global_main(int s)
-{
-	struct wit_client c = {.sock = s};
-	c.display = wl_display_connect(NULL);
-	assert(c.display);
-
-	wit_client_barrier(&c);
-
-	wl_display_disconnect(c.display);
-	return EXIT_SUCCESS;
-}
-
 TEST(create_wrong_version_global_tst)
 {
 	struct wit_config conf = {0, 0, 0};
-	struct wl_global *g1, *g2;
-	struct wit_display *d
-		= wit_display_create_and_run(&conf,
-					     create_wrong_version_global_main);
-	g1 = wl_global_create(d->display, &wl_compositor_interface,
+	struct wl_global *g;
+	struct wit_display *d = wit_display_create(&conf);
+
+	g = wl_global_create(d->display, &wl_compositor_interface,
 			      wl_compositor_interface.version + 1, NULL, NULL);
-	assertf(g1 == NULL,
+	assertf(g == NULL,
 		"Global created even with wrong version");
 
-	wit_display_barrier(d);
 	wit_display_destroy(d);
 }
