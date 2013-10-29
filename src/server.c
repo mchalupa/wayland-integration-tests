@@ -209,12 +209,6 @@ wit_display_process_request(struct wit_display *disp)
 	wl_display_run(disp->display);
 }
 
-inline void
-wit_display_send_data(struct wit_display *d, void *src, size_t size)
-{
-	send_message(d->client_sock[1], size, src);
-}
-
 /* Since tests can run parallely, we need unique socket names
  * for each test. Otherwise test can fail on wl_display_add_socket.
  * Also test would fail on this function when some other test failed and socket
