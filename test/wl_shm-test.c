@@ -77,11 +77,9 @@ format_emit_main(int s)
 {
 	int called_no = 0;
 	struct wit_client c;
-	memset(&c, 0, sizeof c);
+	wit_client_init(&c, s);
 
-	c.sock = s;
 	c.data = &called_no;
-	c.display = wl_display_connect(NULL);
 	assert(c.display);
 
 	c.registry.proxy = (struct wl_proxy *) wl_display_get_registry(c.display);
