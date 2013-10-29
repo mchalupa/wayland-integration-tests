@@ -248,7 +248,6 @@ print_backtrace(int signum)
 	Dl_info info;
 
 	dbg("Backtrace for signal %d:\n", signum);
-	h
 
 	count = backtrace(buffer, 32);
 	for (i = 0; i < count; i++) {
