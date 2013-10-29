@@ -64,15 +64,3 @@ Examples:
     $ tools/colorlog abc delete_id # color even lines containing text 'delete_id'
     $ tools/colorlog abc done '\033[0;31m' # color even lines containing text
                                            # done with given color
-
-=== Versioning ===
-
-WIT versioning should follow wayland's versioning e. g. WIT tests for wayland
-of version a.b.c should have version a.b.c (or higher, considering backward
-compability). Following this rule, it is possible that WIT versions will be
-unconsistent (for example 1.2, 1.2.1, 1.2.9 - we wrote tests for 1.2., 1.2.1 and
-then we changed/wrote new tests for wayland 1.2.9 and tests for versions between
-this range are missing).
-
-The tests can be run using any version of wayland - only warrning is invoked
-when the version is lower than it should be.

@@ -1,10 +1,8 @@
 AC_PREREQ([2.64])
 
-# versioning of WIT should follow wayland -
-# e. g. WIT tests for wayland A.B.C should have version A.B.C or higer
-m4_define([wit_major_version], [1])
+m4_define([wit_major_version], [0])
 m4_define([wit_minor_version], [2])
-m4_define([wit_micro_version], [91])
+m4_define([wit_micro_version], [0])
 m4_define([wit_version],
           [wit_major_version.wit_minor_version.wit_micro_version])
 
@@ -18,6 +16,9 @@ AC_SUBST([WIT_VERSION_MAJOR], [wit_major_version])
 AC_SUBST([WIT_VERSION_MINOR], [wit_minor_version])
 AC_SUBST([WIT_VERSION_MICRO], [wit_micro_version])
 AC_SUBST([WIT_VERSION], [wit_version])
+
+# wayland minimal version
+WAYLAND_MIN_VERSION=1.2.9
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([config])
@@ -58,9 +59,9 @@ TESTS_CFLAGS="$WAYLAND_CLIENT_CFLAGS $WAYLAND_SERVER_CFLAGS"
 TESTS_LIBS="$WAYLAND_CLIENT_LIBS $WAYLAND_SERVER_LIBS"
 
 # check wayland's version
-PKG_CHECK_MODULES([WAYLAND_VERSION], [wayland-server >= $WIT_VERSION],\
+PKG_CHECK_MODULES([WAYLAND_VERSION], [wayland-server >= $WAYLAND_MIN_VERSION],\
 			[],\
-			[AC_MSG_WARN([Wayland version is lower than $WIT_VERSION!])])
+			[AC_MSG_WARN([Wayland version is lower than $WAYLAND_MIN_VERSION!])])
 
 PKG_CHECK_MODULES([LIBUNWIND], [libunwind],\
 			[HAVE_LIBUNWIND=yes], [HAVE_LIBUNWIND=no])
