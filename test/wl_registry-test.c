@@ -108,28 +108,33 @@ global_remove_main(int s)
 
 	c.registry.proxy = (struct wl_proxy *) wl_display_get_registry(c.display);
 	assert(c.registry.proxy);
-
 	wl_registry_add_listener((struct wl_registry *) c.registry.proxy,
 				 &registry_listener, &c);
 	wl_display_dispatch(c.display);
 
 	assert(c.seat.proxy);
-	c.sock = s;
 
 	/* stop client so that it can remove global */
 	wit_client_barrier(&c);
 	wl_display_roundtrip(c.display);
 
+	assertf(destroyed == 1,
+		"Global destroy method haven't been called");
+
 	/*
-	 * from doc: The object remains valid and requests to the object will be
+	 * DOC: The object remains valid and requests to the object will be
 	 * ignored until the client destroys it, to avoid races between the
 	 * global going away and a client sending a request to it.
+	 * See mailing list:
+	 * http://lists.freedesktop.org/archives/wayland-devel/2013-October/011573.html
 	 */
 	struct wl_touch *touch;
 	touch = wl_seat_get_touch((struct wl_seat *) c.seat.proxy);
-	assertf(touch == NULL, "Seat was already deleted, but proxy works");
+	assertf(touch == NULL,
+		"Seat was already deleted, but requeset has not been ignored");
 
-	/* try to get the globals again and check if seat's not there */
+	/* try to get the globals again and check if seat's not there
+	 * (handle_global method with seat interface would abort) */
 	wl_registry_destroy((struct wl_registry *) c.registry.proxy);
 	c.registry.proxy = (struct wl_proxy *) wl_display_get_registry(c.display);
 	assert(c.registry.proxy);
@@ -145,9 +150,6 @@ global_remove_main(int s)
 	wl_display_disconnect(c.display);
 	return EXIT_SUCCESS;
 }
-
-/* -----------------------------------------------------------------------------
-   -------------------------------------------------------------------------- */
 
 /*
  * test global remove event
@@ -172,8 +174,6 @@ TEST(global_remove_tst)
 	wit_display_destroy(d);
 }
 
-/* -----------------------------------------------------------------------------
-   -------------------------------------------------------------------------- */
 static void
 registry_handle_global3(void *data, struct wl_registry *registry,
 		       uint32_t id, const char *interface, uint32_t version)
@@ -183,7 +183,6 @@ registry_handle_global3(void *data, struct wl_registry *registry,
 
 	if (strcmp(interface, "wl_compositor") == 0)
 		*created = 1;
-
 }
 
 static const struct wl_registry_listener registry_listener3 = {
@@ -216,7 +215,7 @@ global_main(int s)
 	return EXIT_SUCCESS;
 }
 
-/* test global event */
+/* test global event (if it's announced after creation) */
 TEST(global_tst)
 {
 	struct wl_global *g;
