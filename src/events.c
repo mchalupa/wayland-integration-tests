@@ -472,7 +472,7 @@ wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b)
 static void
 send_event(struct wit_client *c,  struct event *event)
 {
-	assert(event);
+	assert(c && event);
 
 	int i, fd;
 	void *mem;
@@ -513,6 +513,7 @@ recieve_event(struct wit_display *d)
 	int i, fd;
 	const char *sig = NULL;
 
+	assert(d);
 	fd = d->client_sock[1];
 
 	struct event *e = malloc(sizeof *e);
@@ -571,6 +572,8 @@ wit_eventarray_send(struct wit_client *c, struct wit_eventarray *ea)
 struct wit_eventarray *
 wit_eventarray_recieve(struct wit_display *d)
 {
+	assert(d);
+
 	unsigned int i;
 
 	struct wit_eventarray *ea = malloc(sizeof(struct wit_eventarray));
@@ -590,6 +593,8 @@ wit_eventarray_recieve(struct wit_display *d)
 static void
 free_event_args(struct event *e)
 {
+	assert(e);
+
 	int i;
 	const char *sig =
 		e->event.interface->events[e->event.opcode].signature;
