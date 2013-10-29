@@ -232,8 +232,6 @@ wit_client_call_user_func(struct wit_client *cl)
 	kick_display(cl);
 	send_message(cl->sock, RUN_FUNC);
 	get_acknowledge(cl->sock, RUN_FUNC);
-
-	dbg("run_func got ackn\n");
 }
 
 void
@@ -248,8 +246,6 @@ wit_client_send_eventarray(struct wit_client *cl, struct wit_eventarray *ea)
 
 	get_acknowledge(cl->sock, SEND_EVENTARRAY);
 
-	/* XXX do it in separate function as well
-	 * rest of arguments */
 	assread(cl->sock, &count, sizeof(unsigned));
 	assertf(count == ea->count,
                 "Display replied that it got different number of events"
@@ -311,7 +307,6 @@ wit_client_ask_for_events(struct wit_client *cl, int n)
 
 	return count;
 }
-
 
 void
 wit_client_barrier(struct wit_client *cl)
