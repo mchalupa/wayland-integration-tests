@@ -103,11 +103,8 @@ global_remove_main(int s)
 	int destroyed = 0;
 	struct wit_client c;
 
-	memset(&c, 0, sizeof c);
+	wit_client_init(&c, s);
 	c.data = &destroyed;
-
-	c.display = wl_display_connect(NULL);
-	assert(c.display);
 
 	c.registry.proxy = (struct wl_proxy *) wl_display_get_registry(c.display);
 	assert(c.registry.proxy);
@@ -200,12 +197,8 @@ global_main(int s)
 	uint32_t created = 0;
 
 	struct wit_client c;
-	memset(&c, 0, sizeof c);
+	wit_client_init(&c, s);
 	c.data = &created;
-	c.sock = s;
-
-	c.display = wl_display_connect(NULL);
-	assert(c.display);
 
 	c.registry.proxy = (struct wl_proxy *) wl_display_get_registry(c.display);
 	assert(c.registry.proxy);

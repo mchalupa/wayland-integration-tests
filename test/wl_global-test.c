@@ -53,15 +53,11 @@ global_bind_wrong_id_main(int s)
 	uint32_t max_id = 0;
 	struct wit_client c;
 
-	memset(&c, 0, sizeof c);
+	wit_client_init(&c, s);
 	c.data = &max_id;
-
-	c.display = wl_display_connect(NULL);
-	assert(c.display);
 
 	c.registry.proxy = (struct wl_proxy *) wl_display_get_registry(c.display);
 	assert(c.registry.proxy);
-
 	wl_registry_add_listener((struct wl_registry *) c.registry.proxy,
 				 &registry_listener, &c);
 	wl_display_dispatch(c.display);

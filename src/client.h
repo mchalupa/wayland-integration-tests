@@ -42,6 +42,29 @@ struct wit_client {
 	void *data;
 };
 
+/**
+ * Fill in struct wit_client minimum data needed for
+ * another functions (i.e. socket and display).
+ * This function must not be used altogether with wit_client_populate().
+ *
+ * Usual usage is:
+ *
+ * struct wit_client c;
+ * wit_client_init(&c, sock);
+ *
+ * c.registry.proxy = wl_display_get_registry(c.display);
+ * wit_client_add_listener(&c, "wl_registry", registry_listener);
+ *
+ * ... another user's listeners
+ * ...
+ *
+ * @param c    pointer to client's struct
+ * @param s    socket passed to client's main function
+ * @return nothing (aborts on error)
+ */
+void
+wit_client_init(struct wit_client *c, int s);
+
 struct wit_client *
 wit_client_populate(int sock);
 

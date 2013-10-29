@@ -35,6 +35,19 @@
 #include "events.h"
 
 
+void
+wit_client_init(struct wit_client *c, int s)
+{
+	assert(c);
+	assert(s >= 0);
+
+	memset(c, 0, sizeof *c);
+
+	c->sock = s;
+	c->display = wl_display_connect(NULL);
+	assertf(c->display, "Couldn't connect to display");
+}
+
 /*
  * Allow comfortably add listener into client structure
  * XXX Do it somehow else.. or let user manually add listeners
