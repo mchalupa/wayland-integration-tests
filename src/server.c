@@ -38,6 +38,9 @@
 #include "server.h"
 #include "events.h"
 
+/*
+ * This configuration is used when no configuration
+ * is passed when creating display */
 const struct wit_config wit_default_config = {
 	CONF_SEAT | CONF_COMPOSITOR,
 	CONF_ALL,
@@ -69,6 +72,7 @@ handle_sigchld(int signum, void *data)
 	return 0;
 }
 
+/* emit n events from d->events eventarray */
 static int
 emit_events(struct wit_display *d, int n)
 {
@@ -103,10 +107,11 @@ emit_events(struct wit_display *d, int n)
 	return i;
 }
 
+/* client called kick_display() to interupt wl_display_run() so that
+ * display can progress in code after wit_display_run() */
 static int
 handle_sigusr1(int signum, void *data)
 {
-
 	struct wit_display *disp = data;
 
 	assertf(signum == SIGUSR1,
@@ -137,6 +142,7 @@ wit_display_process_request(struct wit_display *disp)
 
 	fd = disp->client_sock[1];
 
+	/* get orders */
 	assread(fd, &op, sizeof(op));
 
 	switch(op) {
@@ -328,6 +334,9 @@ void
 wit_display_run(struct wit_display *d)
 {
 	assert(d && "Wrong pointer");
+
+	/* Client waits until display initialize itself.
+	 * Let client know that he can stop waiting and continue */
 	send_message(d->client_sock[1], CAN_CONTINUE, 1);
 
 	wl_display_run(d->display);
@@ -340,6 +349,7 @@ run_client(int (*client_main)(int), int wayland_sock, int client_sock)
 	enum optype op = 0;
 	int can_continue = 0;
 
+	/* Wait until display signals that client can continue */
 	assread(client_sock, &op, sizeof(op));
 	assread(client_sock, &can_continue, sizeof(int));
 
@@ -434,8 +444,7 @@ wit_display_add_user_data(struct wit_display *disp, void *data,
 {
 	assert(disp);
 
-	if (disp->data)
-		dbg("Overwriting user data\n");
+	ifdbg(disp->data, "Overwriting user data\n");
 
 	disp->data = data;
 	disp->data_destroy_func = destroy_func;
@@ -493,6 +502,7 @@ wit_display_recieve_eventarray(struct wit_display *d)
 void seat_bind(struct wl_client *, void *, uint32_t, uint32_t);
 void compositor_bind(struct wl_client *, void *, uint32_t, uint32_t);
 
+/* create globals in display according to configuration */
 static void
 display_create_globals(struct wit_display *d)
 {
@@ -514,7 +524,8 @@ display_create_globals(struct wit_display *d)
 			wl_global_create(d->display, &wl_compositor_interface,
 					 wl_compositor_interface.version,
 					 d, compositor_bind);
-		assertf(d->globals.wl_compositor, "Failed creating global for compositor");
+		assertf(d->globals.wl_compositor,
+			"Failed creating global for compositor");
 	}
 
 	if (d->config.globals & CONF_SHM) {
