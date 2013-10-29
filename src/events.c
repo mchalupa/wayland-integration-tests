@@ -101,7 +101,7 @@ wit_eventarray_add_vl(struct wit_eventarray *ea, enum side side,
 				tmp = va_arg(vl, const char *);
 				assertf(tmp, "No string passed");
 				/* this one we'll need to send whole */
-				e->args_size[index] = strlen(tmp);
+				e->args_size[index] = strlen(tmp) + 1;
 
 				e->args[index].s = malloc(e->args_size[index] + 1);
 				assert(e->args[index].s && "Out of memory");
