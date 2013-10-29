@@ -162,7 +162,8 @@ run_test(const struct test *t)
 		errx(EXIT_FAILURE, "Opening '%s' failed", bench_name);
 
 	if (fprintf(f, "%lu %lu %lu\n",
-		 time(NULL), end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec) < 0) {
+		    time(NULL), end.tv_sec - start.tv_sec,
+                    end.tv_nsec - start.tv_nsec) < 0) {
 		 fclose(f);
 		 errx(EXIT_FAILURE, "Writing to %s failed", bench_name);
 	}
@@ -260,9 +261,7 @@ print_backtrace(int signum)
 
 	exit(signum);
 }
-
-#endif
-
+#endif /* HAVE_LIBUNWIND */
 
 int main(int argc, char *argv[])
 {
