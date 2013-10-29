@@ -172,7 +172,7 @@ TEST(user_func_tst)
 	wit_display_run(d);
 
 	/* process user func */
-	wit_display_user_func(d);
+	wit_display_run_user_func(d);
 
 	assertf(user_func_called, "User function wasn't called");
 
@@ -317,7 +317,7 @@ TEST(test_operations_tst)
 
 	wit_display_run(d);
 
-	wit_display_process_request(d);
+	wit_display_recieve_data(d);
 
 	assert(strcmp(d->data, "I'm bytestream") == 0);
 

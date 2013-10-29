@@ -105,10 +105,10 @@ void
 wit_display_process_request(struct wit_display *d);
 
 /* create aliases of opcodes for better readability */
-#define wit_display_event_count		wit_display_process_request
-#define wit_display_event_emit		wit_display_process_request
-#define wit_display_user_func		wit_display_process_request
-#define wit_display_send_bytes		wit_display_process_request
+#define wit_display_emit_events		wit_display_process_request
+#define wit_display_emit_event		wit_display_process_request
+#define wit_display_run_user_func	wit_display_process_request
+#define wit_display_recieve_data	wit_display_process_request
 #define wit_display_barrier		wit_display_process_request
 
 /**

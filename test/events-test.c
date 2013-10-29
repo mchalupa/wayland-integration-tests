@@ -194,7 +194,7 @@ TEST(eventarray_emit_tst)
 	assert(tea->count == 4 && tea->index == 0);
 
 	/* just test if we won't get SIGSEGV because of bad resource */
-	wit_display_event_count(d);
+	wit_display_emit_events(d);
 
 	assert(tea->count == 4);
 	assertf(tea->index == 4, "Index is set wrong (%d)", tea->index);
@@ -341,7 +341,7 @@ TEST(send_eventarray_basic_events_tst)
 
 	/* try emit commited eventarray, don't catch it. Only test if we won't get
 	 * some error. That the eventarray is same we'll test by compare() */
-	wit_display_event_count(d);
+	wit_display_emit_events(d);
 
 	assert(wit_eventarray_compare(d->events, ea) == 0);
 
@@ -440,7 +440,7 @@ TEST(send_one_event_tst)
 	wit_display_create_client(d, send_one_event_main);
 
 	wit_display_run(d);
-	wit_display_event_emit(d);
+	wit_display_emit_event(d);
 
 	wit_display_destroy(d);
 }
@@ -479,7 +479,7 @@ TEST(send_one_event2_tst)
 	wit_display_create_client(d, send_one_event2_main);
 
 	wit_display_run(d);
-	wit_display_event_emit(d);
+	wit_display_emit_event(d);
 
 	wit_display_destroy(d);
 }
@@ -532,9 +532,9 @@ TEST(trigger_multiple_event_tst)
 	struct wit_display *d
 		= wit_display_create_and_run(NULL, trigger_multiple_event_main);
 
-	wit_display_event_emit(d); /* enter */
-	wit_display_event_emit(d); /* leave */
-	wit_display_event_emit(d); /* keyboard enter */
+	wit_display_emit_event(d); /* enter */
+	wit_display_emit_event(d); /* leave */
+	wit_display_emit_event(d); /* keyboard enter */
 
 	wit_display_destroy(d);
 }

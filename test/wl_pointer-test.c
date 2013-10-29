@@ -240,7 +240,7 @@ TEST(pointer_each_once_tst)
 	wit_eventarray_add(d->events, DISPLAY, &pointer_event, 111, d->resources.surface);
 
 	/* client is calling for events */
-	wit_display_event_count(d);
+	wit_display_emit_events(d);
 
 	wit_display_recieve_eventarray(d);
 	assert(wit_eventarray_compare(d->events, events) == 0);
