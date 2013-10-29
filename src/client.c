@@ -59,7 +59,8 @@ wit_client_add_listener(struct wit_client *cl, const char *interface,
 				(struct wl_pointer_listener *) cl->pointer.listener,
 				cl);
 		else
-			dbg("Not adding listener. Pointer proxy hasn't been created yet.\n");
+			dbg("Not adding listener."
+                            "Pointer proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_keyboard") == 0) {
 		ifdbg(cl->keyboard.listener, "Rewriting keyboard listener (%p)\n",
 		      cl->keyboard.listener);
@@ -71,7 +72,8 @@ wit_client_add_listener(struct wit_client *cl, const char *interface,
 				(struct wl_keyboard_listener *) cl->keyboard.listener,
 				cl);
 		else
-			dbg("Not adding listener. Keyboard proxy hasn't been created yet.\n");
+			dbg("Not adding listener."
+                            "Keyboard proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_touch") == 0) {
 		ifdbg(cl->touch.listener, "Rewriting touch listener (%p)\n",
 		      cl->touch.listener);
@@ -83,7 +85,8 @@ wit_client_add_listener(struct wit_client *cl, const char *interface,
 				(struct wl_touch_listener *) cl->touch.listener,
 				cl);
 		else
-			dbg("Not adding listener. touch proxy hasn't been created yet.\n");
+			dbg("Not adding listener."
+                            "Touch proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_seat") == 0) {
 		ifdbg(cl->seat.listener, "Rewriting seat listener (%p)\n",
 		      cl->seat.listener);
@@ -95,7 +98,8 @@ wit_client_add_listener(struct wit_client *cl, const char *interface,
 				(struct wl_seat_listener *) cl->seat.listener,
 				cl);
 		else
-			dbg("Not adding listener. seat proxy hasn't been created yet.\n");
+			dbg("Not adding listener."
+                            "seat proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_shm") == 0) {
 		ifdbg(cl->shm.listener, "Rewriting shm listener (%p)\n",
 		      cl->shm.listener);
@@ -107,7 +111,8 @@ wit_client_add_listener(struct wit_client *cl, const char *interface,
 				(struct wl_shm_listener *) cl->shm.listener,
 				cl);
 		else
-			dbg("Not adding listener. shm proxy hasn't been created yet.\n");
+			dbg("Not adding listener."
+                            "shm proxy hasn't been created yet.\n");
 	} else if (strcmp(interface, "wl_registry") == 0) {
 		ifdbg(cl->registry.listener, "Rewriting registry listener (%p)\n",
 		      cl->registry.listener);
@@ -119,7 +124,8 @@ wit_client_add_listener(struct wit_client *cl, const char *interface,
 				(struct wl_registry_listener *) cl->registry.listener,
 				cl);
 		else
-			dbg("Not adding listener. registry proxy hasn't been created yet.\n");
+			dbg("Not adding listener."
+                            "registry proxy hasn't been created yet.\n");
 	} else {
 		assertf(0, "Unknown type of interface");
 	}
@@ -245,7 +251,8 @@ wit_client_send_eventarray(struct wit_client *cl, struct wit_eventarray *ea)
 	/* XXX do it in separate function as well
 	 * rest of arguments */
 	assread(cl->sock, &count, sizeof(unsigned));
-	assertf(count == ea->count, "Display replied that it got different number of events"
+	assertf(count == ea->count,
+                "Display replied that it got different number of events"
 		" (%u and %u)", count, ea->count);
 }
 
@@ -282,7 +289,8 @@ wit_client_send_data(struct wit_client *cl, void *src, size_t size)
 	get_acknowledge(cl->sock, SEND_BYTES);
 
 	assread(cl->sock, &got_size, sizeof(size_t));
-	assertf(got_size == size, "Display replied that it got different number of bytes"
+	assertf(got_size == size,
+                "Display replied that it got different number of bytes"
 		" (%lu and %lu)", size, got_size);
 }
 
