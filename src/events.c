@@ -77,7 +77,8 @@ wit_eventarray_add_vl(struct wit_eventarray *ea, enum side side,
 
 	/* copy arguments */
 	while(signature[i]) {
-		assertf(index < MAX_ARGS_NO , "Too much arguments (wit issue, not wayland)");
+		assertf(index < MAX_ARGS_NO ,
+                        "Too much arguments (wit issue, not wayland)");
 
 		/* index = position in arguments array,
 		 *     i = position in signature */
@@ -158,7 +159,7 @@ wit_eventarray_add_vl(struct wit_eventarray *ea, enum side side,
 }
 
 /**
- * Serves the client to create evenets and then ask to display to emit them
+ * Serves the client to create evenets and then ask the display to emit them
  * When this function is used on display side, side argument has to be set to
  * DISPLAY
  */
@@ -417,7 +418,8 @@ wit_eventarray_compare(struct wit_eventarray *a, struct wit_eventarray *b)
 	assert(b);
 
 	if (a->count != b->count) {
-		dbg("Different number of events in %s wit_eventarray (first %d and second %d)\n",
+		dbg("Different number of events in %s wit_eventarray"
+                    "(first %d and second %d)\n",
 		    (a->count < b->count) ? "second" : "first", a->count, b->count);
 
 		nok = 1;
