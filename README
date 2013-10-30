@@ -10,11 +10,12 @@ TOP \
     | src/               - WIT framework sources
     | test/              - tests, including self-tests
           | test-runner/ - testing framework
+          | benchmarks/  - folder containing benchmarks results
     | tools/             - tools for manipulating with tests outcomes
 
-Part of this code was taken from wayland test-suite (namely test/test-runner.c,
+Part of this code was taken from Wayland test-suite (namely test/test-runner.c,
 test/test-runner.h and test/test-helpers.c). Backtrace function in test-runner.c
-is from weston.
+is from Weston.
 
 
 === Dependencies ===
@@ -43,12 +44,24 @@ Getting WIT, compiling and running:
 
 When only make is run then the framework is compiled. Tests are run by make check.
 
-
 === Running WIT ===
 
     $ make check
 
 will compile and run all tests in test/ directory.
+Selected tests can be run using
+    $ make check TESTS="test1 test2"
+    $ make check TESTS="wit-test wl_shm-test"   # example
+
+Or if tests have been compiled you can run the test without using make:
+    $ ./test_name
+    $ ./wit-test                    # example
+
+To run only one test-case from test you can do
+    $ ./test_name test_case_name
+    $ ./wit-test client_populate_tst  # run client_populate_tst from wit-test
+
+=== Colored log ===
 
 You can use tools/colorlog to colorize tests output. When no argument
 to colorlog is given, it reads from stdin, otherwise it searches for
@@ -64,3 +77,11 @@ Examples:
     $ tools/colorlog abc delete_id # color even lines containing text 'delete_id'
     $ tools/colorlog abc done '\033[0;31m' # color even lines containing text
                                            # done with given color
+
+=== Writing tests ===
+
+See test/README
+
+=== Authors ===
+
+Marek Chalupa <mchqwerty@gmail.com>
