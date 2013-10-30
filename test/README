@@ -1,0 +1,67 @@
+=======
+ Tests
+=======
+
+Test can be compiled and run using:
+ $ make check
+
+--------------
+Benchmarks
+
+It is measured how long each test takes and the result is appended into
+benchmarks/test_name.benchmark
+
+--------------
+Test-runner
+
+The test-runner is reused from wayland project. There has been added few new
+features: backtrace upon SIGSEGV (taken from Weston project), saving benchmarks.
+The tests have simple leak checker that checks for leaks of memory and
+filedescriptors.
+
+--------------
+Writing tests
+
+The tests have exactly the same form as in wayland:
+TEST(test_name)
+{
+	// test code
+}
+
+The test is run in a subprocess and the exit code of this subprocess
+is the result of the test - 0 is success, non-0 is failure.
+
+Tests using client have to define client's main function. For this function is
+created another subprocess. This gives us this scheme:
+
+		     make check
+		         ||
+                    test-runner
+		   /     |     \
+	       test1   test2   test3
+		  |      |       |
+	      client1 client2  client3
+
+It can be seen that the tests can run parallely (make check -j).
+Client's main functionhas prototype:
+
+  int client_main(int socket)
+
+It should return 0 on success, non-0 else. The socket is the socket used for
+communication between test and the client subprocess (not wayland socket!)
+and is passed to wit_client_populate() of wit_client_init() functions.
+Otherwise the socket should be ignored.
+
+The simplest way how to write test with client is:
+
+  int client_main(int sock)
+  {
+	// client's code
+  }
+
+  TEST(test_name)
+  {
+  	struct wit_display *d
+			= wit_display_create_and_run(NULL, client_main);
+	wit_display_destroy(d);
+  }
