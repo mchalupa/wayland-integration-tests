@@ -1,5 +1,5 @@
 lib_LIBRARIES = libwit-server.a libwit-client.a
-lib_LTLIBRARIES = libwit-global.la
+noinst_LTLIBRARIES = libwit-global.la
 
 
 libwit_server_a_LIBADD = libwit-global.la
