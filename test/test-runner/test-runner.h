@@ -37,7 +37,4 @@ count_open_fds(void);
 void
 print_open_fds(void);
 
-void
-exec_fd_leak_check(int nr_expected_fds); /* never returns */
-
 #endif
