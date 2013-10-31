@@ -89,3 +89,24 @@ print_open_fds(void)
 
 	closedir(dir);
 }
+
+/* get current HEAD commit hash */
+const char *
+get_head_commit(void)
+{
+	/* hash is 41-characters long */
+	static char hash[42];
+
+	/* use popen. It's better than reading it directly from .git/heads/
+	 * because it works everywhere in the project folders hierarchy */
+	FILE *s = popen("git rev-parse HEAD", "r");
+	if (!s)
+		return NULL;
+
+	fscanf(s, "%41s", hash);
+	hash[41] = '\0';
+
+	pclose(s);
+
+	return hash;
+}

@@ -129,6 +129,7 @@ run_test(const struct test *t)
 	int cur_fds, num_fds;
 	struct timespec start, end;
 	char bench_name[255];
+	const char *head;
 	FILE *f;
 
 	cur_fds = count_open_fds();
@@ -161,8 +162,12 @@ run_test(const struct test *t)
 	if (f == NULL)
 		errx(EXIT_FAILURE, "Opening '%s' failed", bench_name);
 
-	if (fprintf(f, "%lu %lu %lu\n",
-		    time(NULL), end.tv_sec - start.tv_sec,
+	head = get_head_commit();
+	ifdbg(head == NULL, "Failed getting HEAD commit\n");
+
+	if (fprintf(f, "%lu %s %lu %lu\n",
+		    time(NULL), head ? head : "xxx",
+		    end.tv_sec - start.tv_sec,
                     end.tv_nsec - start.tv_nsec) < 0) {
 		 fclose(f);
 		 errx(EXIT_FAILURE, "Writing to %s failed", bench_name);

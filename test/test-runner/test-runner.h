@@ -37,4 +37,7 @@ count_open_fds(void);
 void
 print_open_fds(void);
 
+const char *
+get_head_commit(void);
+
 #endif
