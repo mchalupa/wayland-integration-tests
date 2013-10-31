@@ -1,6 +1,6 @@
 SUBDIRS = test-runner
 
-CLEANFILES = benchmarks/*.benchmark *-test $(XDG_RUNTIME_DIR)/wayland-test-*
+CLEANFILES = *-test $(XDG_RUNTIME_DIR)/wayland-test-*
 
 TESTS =				\
 	wit-test		\
