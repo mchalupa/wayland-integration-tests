@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = lib-test-runner.la lib-test-helpers.la
+noinst_LTLIBRARIES = lib-test-runner.la lib-test-helpers.la
 
 lib_test_runner_la_LIBADD = lib-test-helpers.la $(TESTS_LIBS) -ldl
 lib_test_runner_la_SOURCES =	\
