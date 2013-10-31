@@ -3,8 +3,11 @@ The result is then saved in $(top_dir)/test/benchmarks/test_name.benchmark
 
 The file structure is following:
 
-timestamp seconds nanoseconds
-timestamp seconds nanoseconds
-timestamp seconds nanoseconds
+timestamp commit seconds nanoseconds
+timestamp commit seconds nanoseconds
+timestamp commit seconds nanoseconds
 ...
 ...
+
+Where timestamp is UNIX timestamp (time in seconds since the Epoch) and
+commit is hash of commit that was HEAD when the test was started.
